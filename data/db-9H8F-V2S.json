@@ -1,0 +1,31 @@
+{
+  "9H8F-V2S": {
+    "name": "Guy le Strange",
+    "lifespan": "1048-1105",
+    "location": "Brittany, France",
+    "parents": [
+      "L163-ZKX"
+    ],
+    "occupation": "Sheriff of Metz",
+    "children": []
+  },
+  "L163-ZKX": {
+    "name": "FitzWarine",
+    "lifespan": "1000-1056",
+    "location": "Shropshire, England",
+    "parents": [
+      "L163-DR5"
+    ],
+    "children": [
+      "9H8F-V2S"
+    ]
+  },
+  "L163-DR5": {
+    "name": "Fulk FitzWarrine",
+    "lifespan": "0975-Deceased",
+    "parents": [],
+    "children": [
+      "L163-ZKX"
+    ]
+  }
+}
