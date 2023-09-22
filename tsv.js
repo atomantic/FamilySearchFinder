@@ -6,7 +6,7 @@
  * node tsv 9H8F-V2S-2
  */
 import fs from "fs";
-import config from "../config.js";
+import config from "./config.js";
 const idgen = process.argv[2];
 const db = JSON.parse(fs.readFileSync(`./data/db-${idgen}.json`));
 
