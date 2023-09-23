@@ -7,6 +7,7 @@
 import chalk from "chalk";
 import fs from "fs";
 import { pathShortest } from "./lib/pathShortest.js";
+import { pathLongest } from "./lib/pathLongest.js";
 import { pathRandom } from "./lib/pathRandom.js";
 import { logPerson } from "./lib/logPerson.js";
 
@@ -15,13 +16,19 @@ import { hideBin } from "yargs/helpers";
 const argv = yargs(hideBin(process.argv)).argv;
 
 const methods = {
+  l: pathLongest,
   s: pathShortest,
   r: pathRandom,
 };
-
+const methodName = {
+  l: "longest",
+  s: "shortest",
+  r: "random",
+};
 const [selfID, searchID] = argv._;
 const maxGenerations = argv.max || "";
-const method = methods[argv.method[0]] || methods.s;
+const methodKey = argv.method[0] || "s";
+const method = methods[methodKey];
 
 const graph = JSON.parse(
   fs.readFileSync(
@@ -31,17 +38,17 @@ const graph = JSON.parse(
 
 (async () => {
   console.log(
-    `finding path to ${chalk.blue(searchID)} in ${chalk.blue(selfID)}...`
+    `finding ${methodName[methodKey]} path to ${chalk.blue(
+      searchID
+    )} in ${chalk.blue(selfID)}...`
   );
-  // const path = await pathRandom(graph, searchID, selfID);
   const path = await method(graph, searchID, selfID);
 
   path.forEach((id) => logPerson(graph, id));
 
-  // fullPath.forEach(logItem);
   console.log(
     `found path from ${searchID} (${graph[searchID]?.name}) to ${selfID} (${
       graph[selfID]?.name
-    }) in ${chalk.inverse(path.length - 1)} direct generations`
+    }) in ${chalk.inverse(` ${path.length - 1} `)} direct generations`
   );
 })();

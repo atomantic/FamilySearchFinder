@@ -37,18 +37,21 @@ Once you have a database file built for a particular root person, you can run th
 - node index `${ID_OF_CHILD_DB_NODE}` `${maxGenerations}`
   - e.g. `node index 9H8F-V2S`, or `node index 9H8F-V2S 2`
   - this will download the ID of the first person and then download the information for every parent and parent of parent that exists within the database. Note that any repeat IDs will not hit the API. If a `maxGeneration` is supplied, each parent tree will only be crawled to this many generations, else it goes until the database is complete.
-    ![index](images/fsf_guy_index.png)
+    ![guy index](images/fsf_guy_index.png)
   - it will then compile a subset of this information into a db file (JSON) in the data directory
-    ![index](images/fsf_guy_db.png)
+    ![guy db](images/fsf_guy_db.png)
 - node find `${ID_OF_CHILD_DB_NODE}` `${ID_OF_ANCESTOR_TO_SEEK}`
   - optional: `--method=shortest|longest|random` (defaults to shortest path, can also just use single letter `--method=r` or `--method=l`)
-  - this will open up `./data/db-${ID_OF_CHILD_DB_NODE}`, locate `${ID_OF_ANCESTOR_TO_SEEK}` and use the children references to back-trace the lineage to the root child and it will print the result as it navigates ![index](images/fsf_guy_find.png)
+  - this will open up `./data/db-${ID_OF_CHILD_DB_NODE}`, locate `${ID_OF_ANCESTOR_TO_SEEK}` and use the children references to back-trace the lineage to the root child and it will print the result as it navigates ![guy finder](images/fsf_guy_find.png)
   - In many cases, if you go back far enough, some cousins got married, or if you get to Pharaohs, you'll see a lot of siblings as parents and in some cases even some uglier pairings. In cases where your ancestry links multiple times to the same people in history, you'll see a multiplier marker when it goes to find the path like so:
-    ![index](images/fsf_multiple.png)
+    ![multiple](images/fsf_multiple.png)
 - node tsv `${ID_OF_CHILD_DB_NODE}`
-  - this will go through the JSON db file and create a TSV file, which can then be imported into a spreadsheet program ![index](images/fsf_guy_tsv.png)
+  - this will go through the JSON db file and create a TSV file, which can then be imported into a spreadsheet program ![guy tsv](images/fsf_guy_tsv.png)
   - you can then `grep` the tsv file for interesting words:
-    ![index](images/fsf_grep.png)
+    ![grep](images/fsf_grep.png)
+- node purge `${ID_OF_ALTERED_NODE`
+  - this will remove all records in your local database for this ID (self, direct parents, direct children)
+  - use this after fixing bad relationship records in the public database and then re-run your index to re-download/sync relationships that have changed
 
 # Note on Size
 
@@ -58,3 +61,22 @@ I wanted to search based on individual lines above me, so I created index files 
 # If The Tree is Updated
 
 Delete the `data/person/${id}.json` for any changed records (e.g. if someone's parent record is updated, delete the affected child) and re-run the database builder (e.g. `node find 9H8F-V2S L163-DR5`)
+
+# Detecting Time Travelers (Cyclic Loops)
+
+The FamilySearch database does not have a simple cyclic checker and therefore allows records to be linked as grand-children of themselves. This appears somewhat frequently and is relatively easy to spot by noticing that the birth year of the parents is after the birth year of the erroneously linked record. A simple fix is to remove the parents (or the child relationship from the parents) in the FamilySearch UI.
+
+![bad child](images/fsf_bad_child.png)
+![bad child](images/fsf_cyclic.png)
+
+Additionally, the longest path find method will detect these cyclic errors and report them to you for easily locating the problem:
+
+![bad child](images/fsf_cyclic_detection.png)
+
+Once the record has been fixed in the public database, you should purge the detached child ID record from your local cache:
+
+```
+node purge LDTK-1CN
+```
+
+Then re-run your indexer for your desired local graphs.
