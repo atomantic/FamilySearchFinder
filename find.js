@@ -6,82 +6,43 @@
 
 import chalk from "chalk";
 import fs from "fs";
-import sample from "lodash.sample";
+import { pathShortest } from "./lib/pathShortest.js";
+import { pathRandom } from "./lib/pathRandom.js";
+import { logPerson } from "./lib/logPerson.js";
 
-const selfID = process.argv[2];
-const searchID = process.argv[3];
-const maxGenerations = process.argv[4] || "";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+const argv = yargs(hideBin(process.argv)).argv;
 
-const db = JSON.parse(
+const methods = {
+  s: pathShortest,
+  r: pathRandom,
+};
+
+console.log(argv);
+const [selfID, searchID] = argv._;
+const maxGenerations = argv.max || "";
+const method = methods[argv.method[0]] || methods.s;
+
+const graph = JSON.parse(
   fs.readFileSync(
     `./data/db-${selfID}${maxGenerations ? `-${maxGenerations}` : ""}.json`
   )
 );
-const fullPath = [];
-
-/*
-db is an object that has the id keys for every parent entry
-{
-  "9H8F-V2S": {
-    "name": "Guy le Strange",
-    "lifespan": "1048–1105",
-    "parents": [
-      "L163-ZKX"
-    ],
-    "children": [
-      "G966-3FB"
-    ]
-  },...
-}
-*/
-
-const logItem = (id, children) => {
-  console.log(
-    chalk.blue(id),
-    chalk
-      .hex("#EEEEEE")
-      .inverse(db[id]?.lifespan.padStart(18, " ").padEnd(20, " ")),
-    chalk.hex("#DEADED").bold(db[id]?.name),
-    children.length > 1 ? `(x${children.length})` : ``
-  );
-};
-
-const findPath = async (id) => {
-  let testID = id;
-
-  while (testID !== selfID) {
-    const person = db[testID];
-    if (!person) return console.error(testID, `no person found`);
-    fullPath.push(testID);
-    logItem(testID, person.children);
-    if (!person.children || !person.children.length)
-      return console.error("no children", testID);
-    // there might be a shorter path on other children:
-    testID = sample(person.children);
-  }
-
-  const person = db[testID];
-  fullPath.push(testID);
-  logItem(testID, person.children);
-
-  // const person = db[id];
-  // if (!person) return console.error(id, `no person found`);
-  // if (!person.children || !person.children.length)
-  //   return log.error("no children", id);
-
-  // return findPath(person.children[0]);
-};
 
 (async () => {
   console.log(
     `finding path to ${chalk.blue(searchID)} in ${chalk.blue(selfID)}...`
   );
-  await findPath(searchID);
+  // const path = await pathRandom(graph, searchID, selfID);
+  const path = await method(graph, searchID, selfID);
+
+  path.forEach((id) => logPerson(graph, id));
 
   // fullPath.forEach(logItem);
   console.log(
-    `found path from ${searchID} (${db[searchID]?.name}) to ${selfID} (${
-      db[selfID]?.name
-    }) in ${chalk.inverse(fullPath.length - 1)} direct generations`
+    `found path from ${searchID} (${graph[searchID]?.name}) to ${selfID} (${
+      graph[selfID]?.name
+    }) in ${chalk.inverse(path.length - 1)} direct generations`
   );
 })();

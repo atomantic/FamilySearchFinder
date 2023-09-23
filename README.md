@@ -41,6 +41,7 @@ Once you have a database file built for a particular root person, you can run th
   - it will then compile a subset of this information into a db file (JSON) in the data directory
     ![index](images/fsf_guy_db.png)
 - node find `${ID_OF_CHILD_DB_NODE}` `${ID_OF_ANCESTOR_TO_SEEK}`
+  - optional: `--method=shortest|longest|random` (defaults to shortest path, can also just use single letter `--method=r` or `--method=l`)
   - this will open up `./data/db-${ID_OF_CHILD_DB_NODE}`, locate `${ID_OF_ANCESTOR_TO_SEEK}` and use the children references to back-trace the lineage to the root child and it will print the result as it navigates ![index](images/fsf_guy_find.png)
   - In many cases, if you go back far enough, some cousins got married, or if you get to Pharaohs, you'll see a lot of siblings as parents and in some cases even some uglier pairings. In cases where your ancestry links multiple times to the same people in history, you'll see a multiplier marker when it goes to find the path like so:
     ![index](images/fsf_multiple.png)
@@ -48,8 +49,6 @@ Once you have a database file built for a particular root person, you can run th
   - this will go through the JSON db file and create a TSV file, which can then be imported into a spreadsheet program ![index](images/fsf_guy_tsv.png)
   - you can then `grep` the tsv file for interesting words:
     ![index](images/fsf_grep.png)
-
-For now, in these deep traversals, the `find` script just chooses a random child to follow down the line instead of finding the shortest/longest path, so running it over and over will find new paths!
 
 # Note on Size
 
