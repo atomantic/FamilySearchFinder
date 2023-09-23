@@ -19,7 +19,6 @@ const methods = {
   r: pathRandom,
 };
 
-console.log(argv);
 const [selfID, searchID] = argv._;
 const maxGenerations = argv.max || "";
 const method = methods[argv.method[0]] || methods.s;
