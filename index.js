@@ -1,10 +1,10 @@
 import fs from "fs";
 import fscget from "./lib/fscget.js";
-import chalk from "chalk";
 import randInt from "./lib/randInt.js";
 import config from "./config.js";
 import sleep from "./lib/sleep.js";
-
+import json2person from "./lib/json2person.js";
+import logPerson from "./lib/logPerson.js";
 // FS_ACCESS_TOKEN=YOUR_ACCESS_TOKEN node . 9H8F-V2S
 
 const selfID = process.argv[2];
@@ -18,51 +18,26 @@ const getPerson = async (id, generation) => {
   if (generation > maxGenerations) return;
   if (db[id]) return; // already indexed
   const file = `./data/person/${id}.json`;
+  let apidata;
   if (!fs.existsSync(file)) {
-    const data = await fscget(`/platform/tree/persons/${id}`).catch((e) => {
+    apidata = await fscget(`/platform/tree/persons/${id}`).catch((e) => {
       console.error("error getting person for", id, e);
       process.exit(1);
     });
-    if (data) {
-      fs.writeFileSync(file, JSON.stringify(data, null, 2));
+    if (apidata) {
+      fs.writeFileSync(file, JSON.stringify(apidata, null, 2));
     }
     const sleepInt = randInt(minDelay, maxDelay);
     await sleep(sleepInt);
   }
-  const json = JSON.parse(fs.readFileSync(file));
-  const selfRef = json.persons[0];
-  const parentData = (selfRef?.display?.familiesAsChild || [{}])[0];
-  const parents = [];
-  const parent1 = parentData?.parent1?.resourceId;
-  const parent2 = parentData?.parent2?.resourceId;
-  if (parent1) parents.push(parent1);
-  if (parent2) parents.push(parent2);
-  const lifespan = selfRef?.display?.lifespan;
-  const name = selfRef?.display?.name || "unknown";
-  const location = selfRef?.display?.birthPlace || selfRef?.display?.deathPlace;
-  const occupation = (
-    selfRef?.facts.find((f) => f.type === "http://gedcomx.org/Occupation") || {}
-  ).value;
-  console.log(
-    `${chalk.inverse(selfRef.id)}: ${`(${parent1 || "unknown"}+${
-      parent2 || "unknown"
-    })`.padEnd(19, " ")} ${`${lifespan || ""}`.padEnd(16, " ")} ${name} (${
-      occupation || ""
-    }), ${location || ""}`
-  );
-  // skip saving any entry that is a placeholder/unknown termination point
-  if (!parent1 && !parent2 && config.knownUnknowns.includes(name)) return;
-  db[id] = {
-    name,
-    lifespan,
-    location,
-    parents,
-    occupation,
-    // will populate later (as we only want children from within this line)
-    children: [],
-  };
-  if (parent1) await getPerson(parent1, generation + 1);
-  if (parent2) await getPerson(parent2, generation + 1);
+  const json = apidata || JSON.parse(fs.readFileSync(file));
+  const person = json2person(json);
+
+  if (!person) return;
+  db[id] = person;
+  logPerson(db, id);
+  if (person.parents[0]) await getPerson(person.parents[0], generation + 1);
+  if (person.parents[1]) await getPerson(person.parents[1], generation + 1);
 };
 
 const saveDB = async () => {

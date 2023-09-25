@@ -3,3 +3,4 @@ data/*.tsv
 !data/db-9H8F-V2S.tsv
 !data/db-9H8F-V2S.json
 data/person/*.json
+data/pruned/*.json

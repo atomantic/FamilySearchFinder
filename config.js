@@ -1,8 +1,8 @@
 export const config = {
   appKey: "",
   accessToken: process.env.FS_ACCESS_TOKEN || "p0-...",
-  minDelay: 300,
-  maxDelay: 1000,
+  minDelay: 100,
+  maxDelay: 500,
   timeout: 10000,
   // skip explicit unknown matches, but leave ones that could be intersting
   // e.g. "unknown mistresses of Richard I of Normandy"

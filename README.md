@@ -49,9 +49,11 @@ Once you have a database file built for a particular root person, you can run th
   - this will go through the JSON db file and create a TSV file, which can then be imported into a spreadsheet program ![guy tsv](images/fsf_guy_tsv.png)
   - you can then `grep` the tsv file for interesting words:
     ![grep](images/fsf_grep.png)
-- node purge `${ID_OF_ALTERED_NODE`
-  - this will remove all records in your local database for this ID (self, direct parents, direct children)
+- node purge `${ID_1},${ID_2}`
+  - this will remove all records in your local database for this list of IDs (self, direct parents, direct children)
   - use this after fixing bad relationship records in the public database and then re-run your index to re-download/sync relationships that have changed
+- node prune `${dbID}`
+  - this will open up `./data/db-${dbID}.json` and ensure that ONLY records present within this graph are in `./data/person/*.json` -- any people that are not within this database will be moved to `./db/pruned/`
 
 # Note on Size
 
@@ -76,7 +78,13 @@ Additionally, the longest path find method will detect these cyclic errors and r
 Once the record has been fixed in the public database, you should purge the detached child ID record from your local cache:
 
 ```
-node purge LDTK-1CN
+node purge L4MM-Z1K
+```
+
+you can purge multiple records in one loop (more efficient way to go through your files) by chaining ids with a comma, e.g.
+
+```
+node purge L4MM-Z1K,LRWS-Q4Z
 ```
 
 Then re-run your indexer for your desired local graphs.
