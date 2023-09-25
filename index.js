@@ -35,7 +35,7 @@ const getPerson = async (id, generation) => {
 
   if (!person) return;
   db[id] = person;
-  logPerson(db, id);
+  logPerson({ ...db[id], id });
   if (person.parents[0]) await getPerson(person.parents[0], generation + 1);
   if (person.parents[1]) await getPerson(person.parents[1], generation + 1);
 };

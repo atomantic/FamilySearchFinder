@@ -44,7 +44,7 @@ const graph = JSON.parse(
   );
   const path = await method(graph, searchID, selfID);
 
-  path.forEach((id) => logPerson(graph, id));
+  path.forEach((id) => logPerson({ ...graph[id], id }));
 
   console.log(
     `found path from ${searchID} (${graph[searchID]?.name}) to ${selfID} (${

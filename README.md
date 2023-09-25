@@ -54,6 +54,9 @@ Once you have a database file built for a particular root person, you can run th
   - use this after fixing bad relationship records in the public database and then re-run your index to re-download/sync relationships that have changed
 - node prune `${dbID}`
   - this will open up `./data/db-${dbID}.json` and ensure that ONLY records present within this graph are in `./data/person/*.json` -- any people that are not within this database will be moved to `./db/pruned/`
+- node print `${dbID}`
+  - this will open up `./data/db-${dbID}.json`, sort the items by date, and print oldest to newest. This is useful for detecting if records have bad dates (e.g. `2040-2485BC` should be `2040BC-2485BC`). It also allows you to parse backward through records that are likely to be more accurate and leading into less accurate or more questionable places.
+    ![print](images/fsf_print.png)
 
 # Note on Size
 
