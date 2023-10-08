@@ -5,8 +5,13 @@
 import fs from "fs";
 import logPerson from "./lib/logPerson.js";
 import config from "./config.js";
+import yargs from "yargs";
+import { hideBin } from "yargs/helpers";
+const argv = yargs(hideBin(process.argv)).argv;
 
-const id = process.argv[2];
+const [id] = argv._;
+const bio = !!argv.bio;
+
 const db = JSON.parse(fs.readFileSync(`data/db-${id}.json`).toString());
 
 const sortedPeople = [];
@@ -29,6 +34,8 @@ Object.keys(db).forEach((id) => {
 
 sortedPeople.sort((a, b) => (a.year < b.year ? -1 : 1));
 
-sortedPeople.forEach((person) =>
-  !config.knownUnknowns.includes(person.name) ? logPerson(person) : false
+sortedPeople.forEach((person, generation) =>
+  !config.knownUnknowns.includes(person.name.toLowerCase())
+    ? logPerson({ person, bio })
+    : false
 );

@@ -20,7 +20,7 @@ Object.keys(db).forEach((id) => {
   const dates = `${person.lifespan}`.split("-");
   const birth = dates[0] || "";
   const death = dates[1] || "";
-  if (config.knownUnknowns.includes(name)) return;
+  if (config.knownUnknowns.includes(name.toLowerCase())) return;
   tsv += `${id}\t${name}\t${birth}\t${death}\t${location}\t${occupation}\n`;
 });
 

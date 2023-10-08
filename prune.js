@@ -23,7 +23,7 @@ files.forEach((f) => {
     const json = JSON.parse(fs.readFileSync(`data/person/${f}`));
     const person = json2person(json);
     if (person) {
-      logPerson({ person, id });
+      logPerson({ person });
       fs.renameSync(`data/person/${f}`, `data/pruned/${f}`);
     }
   }

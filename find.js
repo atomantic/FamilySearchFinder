@@ -42,9 +42,15 @@ const graph = JSON.parse(
       searchID
     )} in ${chalk.blue(selfID)}...`
   );
+  if (!graph[searchID]) {
+    console.log(`could not find ${searchID} in graph`);
+    process.exit();
+  }
   const path = await method(graph, searchID, selfID);
 
-  path.forEach((id) => logPerson({ ...graph[id], id }));
+  path.forEach((id, i) =>
+    logPerson({ person: { ...graph[id], id }, icon: "", generation: i })
+  );
 
   console.log(
     `found path from ${searchID} (${graph[searchID]?.name}) to ${selfID} (${

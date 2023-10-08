@@ -34,9 +34,11 @@ Once you have a database file built for a particular root person, you can run th
 
 # Scripts
 
-- node index `${ID_OF_CHILD_DB_NODE}` `${maxGenerations}`
-  - e.g. `node index 9H8F-V2S`, or `node index 9H8F-V2S 2`
-  - this will download the ID of the first person and then download the information for every parent and parent of parent that exists within the database. Note that any repeat IDs will not hit the API. If a `maxGeneration` is supplied, each parent tree will only be crawled to this many generations, else it goes until the database is complete.
+- node index `${ID_OF_CHILD_DB_NODE}` --max=`${maxGenerations}` --ignore=`${id1},${id2}` --cache=`all|complete|none`
+  - e.g. `node index 9H8F-V2S`, `node index 9H8F-V2S --max=20`, etc...
+  - this will download the ID of the first person and then download the information for every parent and parent of parent that exists within the database. Note that any repeat IDs will not hit the API. If a `max` is supplied, each parent tree will only be crawled to this many generations, else it goes until the database is complete.
+  - optional: `--ignoreIds` will skip any IDs that are supplied, e.g. `node index 9H8F-V2S --ignoreIds=L163-DR5` will skip the FitzWarine line
+  - optional: `--cache` will determine how much of the existing file cache to preserve. `all` will use all cached downloaded data, `complete` will only rely on cached data where the parents are known and will refetch any person who has at least one missing parent in the local cache (this will catch new additions to the tree), `none` will ignore the local cache and refetch all nodes from the starting id. The default is `all`.
     ![guy index](images/fsf_guy_index.png)
   - it will then compile a subset of this information into a db file (JSON) in the data directory
     ![guy db](images/fsf_guy_db.png)
@@ -54,8 +56,9 @@ Once you have a database file built for a particular root person, you can run th
   - use this after fixing bad relationship records in the public database and then re-run your index to re-download/sync relationships that have changed
 - node prune `${dbID}`
   - this will open up `./data/db-${dbID}.json` and ensure that ONLY records present within this graph are in `./data/person/*.json` -- any people that are not within this database will be moved to `./db/pruned/`
-- node print `${dbID}`
+- node print `${dbID}` --bio
   - this will open up `./data/db-${dbID}.json`, sort the items by date, and print oldest to newest. This is useful for detecting if records have bad dates (e.g. `2040-2485BC` should be `2040BC-2485BC`). It also allows you to parse backward through records that are likely to be more accurate and leading into less accurate or more questionable places.
+  - optional: `--bio` will print the biography of each person as well if it exists in the data
     ![print](images/fsf_print.png)
 
 # Note on Size
