@@ -57,7 +57,7 @@ const getPerson = async (id, generation) => {
   if (cacheMode === "none") getAPIData = true;
   if (cacheMode === "complete" && cached) {
     // see if this file has known parents (not a node with unkown links)
-    contents = fs.readFileSync(file);
+    contents = fs.readFileSync(file).toString();
     apidata = JSON.parse(contents);
     const person = json2person(apidata);
     // if (!person?.parents) {
@@ -108,7 +108,10 @@ const getPerson = async (id, generation) => {
     );
     if (apidata) {
       const jsondata = JSON.stringify(apidata, null, 2);
-      if (contents !== jsondata) fs.writeFileSync(file, jsondata);
+      if (contents !== jsondata) {
+        // console.log(contents, "!=", jsondata);
+        fs.writeFileSync(file, jsondata);
+      }
     } else {
       return console.log(`no apidata for ${id}`);
     }
@@ -120,7 +123,7 @@ const getPerson = async (id, generation) => {
   const json = apidata || JSON.parse(fs.readFileSync(file));
   const person = json2person(json);
 
-  if (!person) return;
+  if (!person) return console.log(`no person for ${id}`);
   db[id] = person;
   logPerson({ person: { ...db[id], id }, icon, generation });
   if (person.parents[0]) await getPerson(person.parents[0], generation + 1);
