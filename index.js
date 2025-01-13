@@ -16,6 +16,7 @@ const maxGenerations = Number(argv.max || Infinity);
 const ignoreIDs = (argv.ignore || "").split(",");
 // cache method can be "all" or "none", or "complete"
 const cacheMode = argv.cache || "all";
+const oldest = argv.oldest;
 
 const { minDelay, maxDelay } = config;
 
@@ -123,7 +124,26 @@ const getPerson = async (id, generation) => {
   const json = apidata || JSON.parse(fs.readFileSync(file));
   const person = json2person(json);
 
-  if (!person) return console.log(`no person for ${id}`);
+  if (!person) return console.log(`no person for ${id} (${json.name})`);
+
+  // check if person is too old
+  if (oldest) {
+    const oldestYear =
+      Number(oldest.replace("BC", "")) * (oldest.includes("BC") ? -1 : 1);
+    const [birth, death] = (person.lifespan || "").split("-");
+    let birthYear = Number.MAX_SAFE_INTEGER;
+    if (birth) {
+      birthYear =
+        Number(birth.replace("BC", "")) * (birth.includes("BC") ? -1 : 1);
+    }
+    if (birthYear < oldestYear) {
+      console.log(
+        `skipping ${id} (${person.lifespan}) because it is older than ${oldest}...`
+      );
+      return;
+    }
+  }
+
   db[id] = person;
   logPerson({ person: { ...db[id], id }, icon, generation });
   if (person.parents[0]) await getPerson(person.parents[0], generation + 1);

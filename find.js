@@ -27,7 +27,7 @@ const methodName = {
 };
 const [selfID, searchID] = argv._;
 const maxGenerations = argv.max || "";
-const methodKey = argv.method[0] || "s";
+const methodKey = (argv.method || [])[0] || "s";
 const method = methods[methodKey];
 
 const graph = JSON.parse(

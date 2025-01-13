@@ -34,10 +34,11 @@ Once you have a database file built for a particular root person, you can run th
 
 # Scripts
 
-- node index `${ID_OF_CHILD_DB_NODE}` --max=`${maxGenerations}` --ignore=`${id1},${id2}` --cache=`all|complete|none`
+- node index `${ID_OF_CHILD_DB_NODE}` --max=`${maxGenerations}` --ignore=`${id1},${id2}` --cache=`all|complete|none` --oldest=`${year}`
   - e.g. `node index 9H8F-V2S`, `node index 9H8F-V2S --max=20`, etc...
   - this will download the ID of the first person and then download the information for every parent and parent of parent that exists within the database. Note that any repeat IDs will not hit the API. If a `max` is supplied, each parent tree will only be crawled to this many generations, else it goes until the database is complete.
   - optional: `--ignoreIds` will skip any IDs that are supplied, e.g. `node index 9H8F-V2S --ignoreIds=L163-DR5` will skip the FitzWarine line
+  - optional: `--oldest` will only download records that are newer than the supplied year, e.g. `node index 9H8F-V2S --oldest=1000` will only download records for people who had a lifespan that began after the year 1000.
   - optional: `--cache` will determine how much of the existing file cache to preserve. `all` will use all cached downloaded data, `complete` will only rely on cached data where the parents are known and will refetch any person who has at least one missing parent in the local cache (this will catch new additions to the tree), `none` will ignore the local cache and refetch all nodes from the starting id. The default is `all`.
     ![guy index](images/fsf_guy_index.png)
   - it will then compile a subset of this information into a db file (JSON) in the data directory
