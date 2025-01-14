@@ -129,7 +129,8 @@ const getPerson = async (id, generation) => {
   // check if person is too old
   if (oldest) {
     const oldestYear =
-      Number(oldest.replace("BC", "")) * (oldest.includes("BC") ? -1 : 1);
+      Number(String(oldest).replace("BC", "")) *
+      (String(oldest).includes("BC") ? -1 : 1);
     const [birth, death] = (person.lifespan || "").split("-");
     let birthYear = Number.MAX_SAFE_INTEGER;
     if (birth) {
