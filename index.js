@@ -17,6 +17,14 @@ const ignoreIDs = (argv.ignore || "").split(",");
 // cache method can be "all" or "none", or "complete"
 const cacheMode = argv.cache || "all";
 const oldest = argv.oldest;
+const logToTSV = argv.tsv;
+
+if (logToTSV) {
+  fs.writeFileSync(
+    `./data/${selfID}.tsv`,
+    "Generation\tID\tParents\tLifespan\tName\tInstances\tLocation\tOccupation\tBio\n"
+  );
+}
 
 const { minDelay, maxDelay } = config;
 
@@ -146,7 +154,7 @@ const getPerson = async (id, generation) => {
   }
 
   db[id] = person;
-  logPerson({ person: { ...db[id], id }, icon, generation });
+  logPerson({ person: { ...db[id], id }, icon, generation, logToTSV, selfID });
   if (person.parents[0]) await getPerson(person.parents[0], generation + 1);
   if (person.parents[1]) await getPerson(person.parents[1], generation + 1);
 };
