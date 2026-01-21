@@ -36,13 +36,13 @@ export function PersonCard({ person, dbId, onExpand, isLoading }: PersonCardProp
       className={`
         flex items-center gap-3 p-3 bg-app-card rounded-lg border border-app-border
         border-l-4 ${borderColor}
-        hover:bg-neutral-800 cursor-pointer transition-colors
+        hover:bg-neutral-200 dark:hover:bg-neutral-800 cursor-pointer transition-colors
         min-w-[200px] max-w-[280px]
       `}
       onClick={handleCardClick}
     >
       {/* Circular photo or placeholder */}
-      <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-neutral-700 flex items-center justify-center">
+      <div className="flex-shrink-0 w-12 h-12 rounded-full overflow-hidden bg-neutral-200 dark:bg-neutral-700 flex items-center justify-center">
         {person.photoUrl ? (
           <img
             src={person.photoUrl}
@@ -68,9 +68,9 @@ export function PersonCard({ person, dbId, onExpand, isLoading }: PersonCardProp
 
       {/* Person info */}
       <div className="flex-1 min-w-0">
-        <div className="font-semibold text-white text-sm truncate">{person.name}</div>
-        <div className="text-xs text-neutral-400 truncate">{person.lifespan}</div>
-        <div className="text-xs text-neutral-500 truncate">{person.id}</div>
+        <div className="font-semibold text-app-text text-sm truncate">{person.name}</div>
+        <div className="text-xs text-app-text-muted truncate">{person.lifespan}</div>
+        <div className="text-xs text-neutral-400 dark:text-neutral-500 truncate">{person.id}</div>
       </div>
 
       {/* Expand button */}
@@ -80,7 +80,7 @@ export function PersonCard({ person, dbId, onExpand, isLoading }: PersonCardProp
           disabled={isLoading}
           className={`
             flex-shrink-0 w-8 h-8 rounded-full flex items-center justify-center
-            bg-neutral-700 hover:bg-neutral-600 transition-colors
+            bg-neutral-200 dark:bg-neutral-700 hover:bg-neutral-300 dark:hover:bg-neutral-600 transition-colors
             ${isLoading ? 'opacity-50 cursor-wait' : ''}
           `}
           title="Load ancestors"
@@ -88,7 +88,7 @@ export function PersonCard({ person, dbId, onExpand, isLoading }: PersonCardProp
           {isLoading ? (
             <div className="w-4 h-4 border-2 border-neutral-400 border-t-transparent rounded-full animate-spin" />
           ) : (
-            <ChevronRight className="w-4 h-4 text-neutral-300" />
+            <ChevronRight className="w-4 h-4 text-neutral-600 dark:text-neutral-300" />
           )}
         </button>
       )}

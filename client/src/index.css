@@ -2,11 +2,29 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  @apply bg-app-bg text-white;
+/* Light theme (default) */
+:root {
+  --color-app-bg: #f5f5f5;
+  --color-app-card: #ffffff;
+  --color-app-border: #e5e5e5;
+  --color-app-text: #171717;
+  --color-app-text-muted: #737373;
 }
 
-/* Dark scrollbar */
+/* Dark theme */
+.dark {
+  --color-app-bg: #0f0f0f;
+  --color-app-card: #1a1a1a;
+  --color-app-border: #2a2a2a;
+  --color-app-text: #ffffff;
+  --color-app-text-muted: #a3a3a3;
+}
+
+body {
+  @apply bg-app-bg text-app-text transition-colors duration-200;
+}
+
+/* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
   height: 8px;
@@ -21,7 +39,7 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-600;
+  @apply bg-neutral-400 dark:bg-neutral-600;
 }
 
 /* Focus styles */
@@ -31,7 +49,7 @@ body {
 
 /* Form elements */
 input, select, textarea {
-  @apply bg-app-card border-app-border text-white placeholder-neutral-500;
+  @apply bg-app-card border-app-border text-app-text placeholder-app-text-muted;
 }
 
 input:focus, select:focus, textarea:focus {

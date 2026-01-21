@@ -28,11 +28,11 @@ function DeleteConfirmModal({ database, onConfirm, onCancel, isDeleting }: Delet
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
       <div className="bg-app-card border border-app-border rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold text-white mb-4">Delete Database?</h2>
+        <h2 className="text-xl font-bold text-app-text mb-4">Delete Database?</h2>
         <p className="text-neutral-400 mb-2">
           Are you sure you want to delete the database for:
         </p>
-        <p className="text-white font-semibold mb-1">
+        <p className="text-app-text font-semibold mb-1">
           {database.rootName || database.rootId}
         </p>
         <p className="text-neutral-500 text-sm mb-6">
@@ -51,7 +51,7 @@ function DeleteConfirmModal({ database, onConfirm, onCancel, isDeleting }: Delet
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-red-600 text-app-text rounded hover:bg-red-500 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isDeleting ? (
               <>
@@ -116,7 +116,7 @@ export function Dashboard() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6 text-white">Family Tree Databases</h1>
+      <h1 className="text-2xl font-bold mb-6 text-app-text">Family Tree Databases</h1>
 
       {databases.length === 0 ? (
         <div className="text-center py-8 text-neutral-400">
@@ -150,7 +150,7 @@ export function Dashboard() {
               {/* Header with name and delete */}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">
-                  <h2 className="font-semibold text-lg text-white truncate">
+                  <h2 className="font-semibold text-lg text-app-text truncate">
                     {db.rootName || 'Unknown Person'}
                   </h2>
                   <p className="text-xs text-neutral-500 font-mono">{db.rootId}</p>

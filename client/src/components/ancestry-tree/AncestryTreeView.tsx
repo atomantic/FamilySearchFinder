@@ -226,7 +226,7 @@ export function AncestryTreeView() {
     <div className="h-full flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between mb-4 px-4 pt-4">
-        <h1 className="text-2xl font-bold text-white">Ancestry Tree</h1>
+        <h1 className="text-2xl font-bold text-app-text">Ancestry Tree</h1>
         <div className="flex gap-2">
           <Link
             to={`/search/${dbId}`}

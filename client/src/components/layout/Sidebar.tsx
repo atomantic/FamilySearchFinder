@@ -1,6 +1,7 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database, Star, Network } from 'lucide-react';
+import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database, Star, Network, Sun, Moon } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
+import { useTheme } from '../../context/ThemeContext';
 
 interface NavItem {
   path: string;
@@ -20,6 +21,7 @@ export function Sidebar() {
   const location = useLocation();
   const { dbId } = useParams<{ dbId?: string }>();
   const { isCollapsed, isMobileOpen, toggleCollapsed, toggleMobile, closeMobile } = useSidebar();
+  const { theme, toggleTheme } = useTheme();
 
   // Extract dbId from various route patterns
   const currentDbId = dbId || extractDbIdFromPath(location.pathname);
@@ -41,8 +43,8 @@ export function Sidebar() {
   const navLinkClasses = (path: string) => `
     flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
     ${isActive(path)
-      ? 'bg-app-accent text-white'
-      : 'text-neutral-400 hover:bg-app-border hover:text-white'
+      ? 'bg-app-accent text-app-text'
+      : 'text-neutral-400 hover:bg-app-border hover:text-app-text'
     }
     ${isCollapsed ? 'justify-center' : ''}
   `;
@@ -52,7 +54,7 @@ export function Sidebar() {
       {/* Mobile hamburger button */}
       <button
         onClick={toggleMobile}
-        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-app-card border border-app-border text-white md:hidden"
+        className="fixed top-4 left-4 z-50 p-2 rounded-lg bg-app-card border border-app-border text-app-text md:hidden"
         aria-label="Toggle menu"
       >
         {isMobileOpen ? <X size={20} /> : <Menu size={20} />}
@@ -79,13 +81,13 @@ export function Sidebar() {
         {/* Logo / Brand */}
         <div className={`p-4 border-b border-app-border flex items-center ${isCollapsed ? 'justify-center' : 'justify-between'}`}>
           {!isCollapsed && (
-            <Link to="/" className="text-lg font-bold text-white truncate" onClick={closeMobile}>
+            <Link to="/" className="text-lg font-bold text-app-text truncate" onClick={closeMobile}>
               FSF
             </Link>
           )}
           <button
             onClick={toggleCollapsed}
-            className="p-1.5 rounded-lg text-neutral-400 hover:bg-app-border hover:text-white hidden md:block"
+            className="p-1.5 rounded-lg text-neutral-400 hover:bg-app-border hover:text-app-text hidden md:block"
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -132,6 +134,22 @@ export function Sidebar() {
             </>
           )}
         </nav>
+
+        {/* Theme Toggle */}
+        <div className={`p-3 border-t border-app-border ${isCollapsed ? 'flex justify-center' : ''}`}>
+          <button
+            onClick={toggleTheme}
+            className={`
+              flex items-center gap-3 px-3 py-2 rounded-lg transition-colors w-full
+              text-app-text-muted hover:bg-app-border hover:text-app-text
+              ${isCollapsed ? 'justify-center' : ''}
+            `}
+            title={isCollapsed ? (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode') : undefined}
+          >
+            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
+            {!isCollapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+          </button>
+        </div>
       </aside>
     </>
   );
