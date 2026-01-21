@@ -1,0 +1,39 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-app-bg text-white;
+}
+
+/* Dark scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  @apply bg-app-bg;
+}
+
+::-webkit-scrollbar-thumb {
+  @apply bg-app-border rounded;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  @apply bg-neutral-600;
+}
+
+/* Focus styles */
+*:focus-visible {
+  @apply outline-none ring-2 ring-app-accent ring-offset-2 ring-offset-app-bg;
+}
+
+/* Form elements */
+input, select, textarea {
+  @apply bg-app-card border-app-border text-white placeholder-neutral-500;
+}
+
+input:focus, select:focus, textarea:focus {
+  @apply border-app-accent;
+}

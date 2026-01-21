@@ -1,11 +1,22 @@
 {
   "name": "FamilySearchFinder",
   "version": "1.0.0",
-  "private": "true",
+  "private": true,
   "description": "",
   "main": "index.js",
   "type": "module",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
   "scripts": {
+    "dev": "concurrently \"npm run dev:server\" \"npm run dev:client\"",
+    "dev:server": "npm run dev -w server",
+    "dev:client": "npm run dev -w client",
+    "build": "npm run build -w shared && npm run build -w server && npm run build -w client",
+    "install:all": "npm install && npm install -w shared && npm install -w server && npm install -w client",
+    "start": "npm run start -w server",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
@@ -15,5 +26,8 @@
     "fs-js-lite": "^2.6.6",
     "lodash.sample": "^4.2.1",
     "yargs": "^17.7.2"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
   }
 }

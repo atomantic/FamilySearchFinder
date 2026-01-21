@@ -1,0 +1,13 @@
+{
+  "name": "@fsf/shared",
+  "version": "1.0.0",
+  "type": "module",
+  "main": "types/index.js",
+  "types": "types/index.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}
