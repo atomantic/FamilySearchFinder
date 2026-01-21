@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen, Calendar, Heart } from 'lucide-react';
+import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen, Calendar, Heart, Database, Unlink } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation } from '@fsf/shared';
+import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation, GenealogyProviderConfig, GenealogyProviderRegistry, ProviderPersonMapping, PlatformType } from '@fsf/shared';
 import { api, ScrapedPersonData } from '../../services/api';
 
 interface CachedLineage {
@@ -82,6 +82,16 @@ export function PersonDetail() {
   const [showWikiInput, setShowWikiInput] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  // Provider linking state
+  const [providers, setProviders] = useState<GenealogyProviderRegistry | null>(null);
+  const [providerMappings, setProviderMappings] = useState<ProviderPersonMapping[]>([]);
+  const [showProviderLinkInput, setShowProviderLinkInput] = useState(false);
+  const [selectedProviderId, setSelectedProviderId] = useState('');
+  const [providerUrl, setProviderUrl] = useState('');
+  const [providerExternalId, setProviderExternalId] = useState('');
+  const [providerLinkLoading, setProviderLinkLoading] = useState(false);
+  const [unlinkingProviderId, setUnlinkingProviderId] = useState<string | null>(null);
+
   useEffect(() => {
     if (!dbId || !personId) return;
 
@@ -95,6 +105,14 @@ export function PersonDetail() {
     setSpouseData({});
     setWikiUrl('');
     setShowWikiInput(false);
+    setProviderMappings([]);
+    setShowProviderLinkInput(false);
+    setSelectedProviderId('');
+    setProviderUrl('');
+    setProviderExternalId('');
+
+    // Load genealogy providers (separate from main data)
+    api.listGenealogyProviders().then(setProviders).catch(() => null);
 
     Promise.all([
       api.getPerson(dbId, personId),
@@ -102,11 +120,13 @@ export function PersonDetail() {
       api.getScrapedData(personId).catch(() => null),
       api.hasPhoto(personId).catch(() => ({ exists: false })),
       api.getAugmentation(personId).catch(() => null),
-      api.hasWikiPhoto(personId).catch(() => ({ exists: false }))
+      api.hasWikiPhoto(personId).catch(() => ({ exists: false })),
+      api.getPersonProviderLinks(personId).catch(() => [])
     ])
-      .then(async ([personData, dbData, scraped, photoCheck, augment, wikiPhotoCheck]) => {
+      .then(async ([personData, dbData, scraped, photoCheck, augment, wikiPhotoCheck, providerLinks]) => {
         setPerson(personData);
         setDatabase(dbData);
+        setProviderMappings(providerLinks || []);
         setScrapedData(scraped);
         setHasPhoto(photoCheck?.exists ?? false);
         setAugmentation(augment);
@@ -204,6 +224,60 @@ export function PersonDetail() {
     }
 
     setWikiLoading(false);
+  };
+
+  const handleLinkProvider = async () => {
+    if (!personId || !selectedProviderId || !providerUrl.trim()) return;
+
+    setProviderLinkLoading(true);
+
+    const provider = providers?.providers[selectedProviderId];
+    if (!provider) {
+      toast.error('Provider not found');
+      setProviderLinkLoading(false);
+      return;
+    }
+
+    const data = await api.linkPersonToProvider(personId, {
+      providerId: selectedProviderId,
+      platform: provider.platform,
+      url: providerUrl.trim(),
+      externalId: providerExternalId.trim() || undefined,
+      confidence: 'medium',
+      matchedBy: 'manual'
+    }).catch(err => {
+      toast.error(err.message);
+      return null;
+    });
+
+    if (data) {
+      setProviderMappings(data.providerMappings || []);
+      setShowProviderLinkInput(false);
+      setSelectedProviderId('');
+      setProviderUrl('');
+      setProviderExternalId('');
+      toast.success('Provider linked successfully');
+    }
+
+    setProviderLinkLoading(false);
+  };
+
+  const handleUnlinkProvider = async (providerId: string) => {
+    if (!personId) return;
+
+    setUnlinkingProviderId(providerId);
+
+    const data = await api.unlinkPersonFromProvider(personId, providerId).catch(err => {
+      toast.error(err.message);
+      return null;
+    });
+
+    if (data) {
+      setProviderMappings(data.providerMappings || []);
+      toast.success('Provider unlinked');
+    }
+
+    setUnlinkingProviderId(null);
   };
 
   if (loading) {
@@ -555,6 +629,150 @@ export function PersonDetail() {
               <p className="text-xs text-neutral-500 mt-2">
                 Paste a Wikipedia URL to import photo and description for this person.
               </p>
+            </div>
+          )}
+
+          {/* Provider Mappings Section */}
+          {providers && Object.keys(providers.providers).length > 0 && (
+            <div className="bg-app-card rounded-lg border border-app-border p-5">
+              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+                <Database size={18} className="text-app-accent" />
+                Provider Links
+              </h2>
+
+              {/* Existing provider mappings */}
+              {providerMappings.length > 0 && (
+                <div className="space-y-2 mb-4">
+                  {providerMappings.map(mapping => {
+                    const provider = providers.providers[mapping.providerId];
+                    const isUnlinking = unlinkingProviderId === mapping.providerId;
+                    return (
+                      <div
+                        key={mapping.providerId}
+                        className="flex items-center justify-between px-3 py-2 bg-app-bg rounded"
+                      >
+                        <div className="flex items-center gap-3">
+                          <span className="text-sm text-neutral-300">
+                            {provider?.name || mapping.providerId}
+                          </span>
+                          <span className="text-xs px-2 py-0.5 bg-neutral-700 text-neutral-400 rounded">
+                            {mapping.platform}
+                          </span>
+                          {mapping.confidence && (
+                            <span className={`text-xs px-2 py-0.5 rounded ${
+                              mapping.confidence === 'high' ? 'bg-green-600/20 text-green-400' :
+                              mapping.confidence === 'medium' ? 'bg-yellow-600/20 text-yellow-400' :
+                              'bg-red-600/20 text-red-400'
+                            }`}>
+                              {mapping.confidence}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <a
+                            href={mapping.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-app-accent hover:text-app-accent/80 text-sm"
+                          >
+                            <ExternalLink size={14} />
+                          </a>
+                          <button
+                            onClick={() => handleUnlinkProvider(mapping.providerId)}
+                            disabled={isUnlinking}
+                            className="text-red-400 hover:text-red-300 disabled:opacity-50"
+                          >
+                            {isUnlinking ? (
+                              <Loader2 size={14} className="animate-spin" />
+                            ) : (
+                              <Unlink size={14} />
+                            )}
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Link to Provider button */}
+              {!showProviderLinkInput && (
+                <button
+                  onClick={() => setShowProviderLinkInput(true)}
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors text-sm"
+                >
+                  <Link2 size={14} />
+                  Link to Provider
+                </button>
+              )}
+
+              {/* Provider link input form */}
+              {showProviderLinkInput && (
+                <div className="space-y-3 mt-3 pt-3 border-t border-app-border">
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1">Provider</label>
+                    <select
+                      value={selectedProviderId}
+                      onChange={e => setSelectedProviderId(e.target.value)}
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white text-sm focus:border-app-accent focus:outline-none"
+                    >
+                      <option value="">Select a provider...</option>
+                      {Object.values(providers.providers)
+                        .filter(p => !providerMappings.some(m => m.providerId === p.id))
+                        .map(p => (
+                          <option key={p.id} value={p.id}>{p.name} ({p.platform})</option>
+                        ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1">URL on Provider</label>
+                    <input
+                      type="url"
+                      value={providerUrl}
+                      onChange={e => setProviderUrl(e.target.value)}
+                      placeholder="https://..."
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 text-sm focus:border-app-accent focus:outline-none"
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-xs font-medium text-neutral-400 mb-1">External ID (optional)</label>
+                    <input
+                      type="text"
+                      value={providerExternalId}
+                      onChange={e => setProviderExternalId(e.target.value)}
+                      placeholder="Person ID on provider platform"
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 text-sm focus:border-app-accent focus:outline-none"
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleLinkProvider}
+                      disabled={providerLinkLoading || !selectedProviderId || !providerUrl.trim()}
+                      className="px-3 py-1.5 bg-app-accent text-white rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
+                    >
+                      {providerLinkLoading ? (
+                        <>
+                          <Loader2 size={14} className="animate-spin" />
+                          Linking...
+                        </>
+                      ) : (
+                        'Link'
+                      )}
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowProviderLinkInput(false);
+                        setSelectedProviderId('');
+                        setProviderUrl('');
+                        setProviderExternalId('');
+                      }}
+                      className="px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors text-sm"
+                    >
+                      Cancel
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>

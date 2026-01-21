@@ -2,7 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
-import type { PersonAugmentation, PlatformReference, PersonPhoto, PersonDescription, PlatformType } from '@fsf/shared';
+import type { PersonAugmentation, PlatformReference, PersonPhoto, PersonDescription, PlatformType, ProviderPersonMapping } from '@fsf/shared';
 
 const DATA_DIR = path.resolve(import.meta.dirname, '../../../data');
 const AUGMENT_DIR = path.join(DATA_DIR, 'augment');
@@ -493,5 +493,73 @@ export const augmentationService = {
   getLinkedPlatforms(personId: string): PlatformReference[] {
     const augmentation = this.getAugmentation(personId);
     return augmentation?.platforms || [];
+  },
+
+  /**
+   * Add or update a provider mapping for a person
+   */
+  addProviderMapping(personId: string, mapping: Omit<ProviderPersonMapping, 'linkedAt'>): PersonAugmentation {
+    const existing = this.getAugmentation(personId) || {
+      id: personId,
+      platforms: [],
+      photos: [],
+      descriptions: [],
+      providerMappings: [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    if (!existing.providerMappings) {
+      existing.providerMappings = [];
+    }
+
+    const fullMapping: ProviderPersonMapping = {
+      ...mapping,
+      linkedAt: new Date().toISOString(),
+    };
+
+    // Check if mapping for this provider already exists
+    const existingIdx = existing.providerMappings.findIndex(m => m.providerId === mapping.providerId);
+    if (existingIdx >= 0) {
+      existing.providerMappings[existingIdx] = fullMapping;
+    } else {
+      existing.providerMappings.push(fullMapping);
+    }
+
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
+  },
+
+  /**
+   * Remove a provider mapping from a person
+   */
+  removeProviderMapping(personId: string, providerId: string): PersonAugmentation | null {
+    const existing = this.getAugmentation(personId);
+    if (!existing || !existing.providerMappings) return existing;
+
+    const idx = existing.providerMappings.findIndex(m => m.providerId === providerId);
+    if (idx < 0) return existing;
+
+    existing.providerMappings.splice(idx, 1);
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
+  },
+
+  /**
+   * Get all provider mappings for a person
+   */
+  getProviderMappings(personId: string): ProviderPersonMapping[] {
+    const augmentation = this.getAugmentation(personId);
+    return augmentation?.providerMappings || [];
+  },
+
+  /**
+   * Check if a person has a mapping to a specific provider
+   */
+  hasProviderMapping(personId: string, providerId: string): boolean {
+    const augmentation = this.getAugmentation(personId);
+    if (!augmentation?.providerMappings) return false;
+    return augmentation.providerMappings.some(m => m.providerId === providerId);
   },
 };

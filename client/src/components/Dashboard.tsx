@@ -1,9 +1,19 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Trash2, Users, GitBranch, Search, Route, Loader2 } from 'lucide-react';
+import { Trash2, Users, GitBranch, Search, Route, Loader2, Database } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { DatabaseInfo } from '@fsf/shared';
 import { api } from '../services/api';
+
+// Platform badge colors
+const platformColors: Record<string, { bg: string; text: string }> = {
+  familysearch: { bg: 'bg-green-600/20', text: 'text-green-400' },
+  myheritage: { bg: 'bg-orange-600/20', text: 'text-orange-400' },
+  geni: { bg: 'bg-cyan-600/20', text: 'text-cyan-400' },
+  wikitree: { bg: 'bg-purple-600/20', text: 'text-purple-400' },
+  findmypast: { bg: 'bg-blue-600/20', text: 'text-blue-400' },
+  ancestry: { bg: 'bg-emerald-600/20', text: 'text-emerald-400' },
+};
 
 interface DeleteConfirmModalProps {
   database: DatabaseInfo | null;
@@ -122,6 +132,21 @@ export function Dashboard() {
               key={db.id}
               className="bg-app-card rounded-lg border border-app-border p-4 hover:border-neutral-600 transition-colors"
             >
+              {/* Source provider badge */}
+              {db.sourceProvider && (
+                <div className="mb-2">
+                  {(() => {
+                    const colors = platformColors[db.sourceProvider] || { bg: 'bg-neutral-600/20', text: 'text-neutral-400' };
+                    return (
+                      <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}>
+                        <Database size={10} />
+                        {db.sourceProvider}
+                      </span>
+                    );
+                  })()}
+                </div>
+              )}
+
               {/* Header with name and delete */}
               <div className="flex items-start justify-between mb-2">
                 <div className="flex-1 min-w-0">

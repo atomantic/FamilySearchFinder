@@ -7,6 +7,8 @@ import { SearchPage } from './components/search/SearchPage';
 import { PathFinder } from './components/path/PathFinder';
 import { IndexerPage } from './components/indexer/IndexerPage';
 import { AIProvidersPage } from './pages/AIProviders';
+import { GenealogyProvidersPage } from './pages/GenealogyProviders';
+import { GenealogyProviderEditPage } from './pages/GenealogyProviderEdit';
 
 function App() {
   return (
@@ -20,6 +22,9 @@ function App() {
         <Route path="path/:dbId" element={<PathFinder />} />
         <Route path="indexer" element={<IndexerPage />} />
         <Route path="providers" element={<AIProvidersPage />} />
+        <Route path="providers/genealogy" element={<GenealogyProvidersPage />} />
+        <Route path="providers/genealogy/new" element={<GenealogyProviderEditPage />} />
+        <Route path="providers/genealogy/:id/edit" element={<GenealogyProviderEditPage />} />
       </Route>
     </Routes>
   );

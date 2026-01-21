@@ -7,7 +7,12 @@ import type {
   TreeNode,
   IndexerStatus,
   IndexOptions,
-  PersonAugmentation
+  PersonAugmentation,
+  GenealogyProviderConfig,
+  GenealogyProviderRegistry,
+  ProviderPersonMapping,
+  PlatformType,
+  GenealogyAuthType
 } from '@fsf/shared';
 
 const BASE_URL = '/api';
@@ -129,7 +134,72 @@ export const api = {
   hasWikiPhoto: (personId: string) =>
     fetchJson<{ exists: boolean }>(`/augment/${personId}/wiki-photo/exists`),
 
-  getWikiPhotoUrl: (personId: string) => `${BASE_URL}/augment/${personId}/wiki-photo`
+  getWikiPhotoUrl: (personId: string) => `${BASE_URL}/augment/${personId}/wiki-photo`,
+
+  // Genealogy Providers
+  listGenealogyProviders: () =>
+    fetchJson<GenealogyProviderRegistry>('/genealogy-providers'),
+
+  getGenealogyProvider: (id: string) =>
+    fetchJson<GenealogyProviderConfig>(`/genealogy-providers/${id}`),
+
+  createGenealogyProvider: (config: Partial<GenealogyProviderConfig>) =>
+    fetchJson<GenealogyProviderConfig>('/genealogy-providers', {
+      method: 'POST',
+      body: JSON.stringify(config)
+    }),
+
+  updateGenealogyProvider: (id: string, config: Partial<GenealogyProviderConfig>) =>
+    fetchJson<GenealogyProviderConfig>(`/genealogy-providers/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(config)
+    }),
+
+  deleteGenealogyProvider: (id: string) =>
+    fetchJson<{ deleted: string }>(`/genealogy-providers/${id}`, { method: 'DELETE' }),
+
+  testGenealogyProviderConnection: (id: string) =>
+    fetchJson<{ success: boolean; message: string }>(`/genealogy-providers/${id}/test`, {
+      method: 'POST'
+    }),
+
+  activateGenealogyProvider: (id: string) =>
+    fetchJson<{ activeProvider: string }>(`/genealogy-providers/${id}/activate`, {
+      method: 'POST'
+    }),
+
+  deactivateGenealogyProvider: () =>
+    fetchJson<{ activeProvider: null }>('/genealogy-providers/deactivate', {
+      method: 'POST'
+    }),
+
+  getGenealogyProviderDefaults: (platform: PlatformType) =>
+    fetchJson<Partial<GenealogyProviderConfig>>(`/genealogy-providers/defaults/${platform}`),
+
+  listGenealogyPlatforms: () =>
+    fetchJson<Array<{ platform: PlatformType; name: string; authType: GenealogyAuthType }>>('/genealogy-providers/platforms'),
+
+  // Provider person linking
+  linkPersonToProvider: (personId: string, data: {
+    providerId: string;
+    platform: PlatformType;
+    url: string;
+    externalId?: string;
+    confidence?: 'high' | 'medium' | 'low';
+    matchedBy?: 'manual' | 'auto' | 'imported';
+  }) =>
+    fetchJson<PersonAugmentation>(`/augment/${personId}/provider-link`, {
+      method: 'POST',
+      body: JSON.stringify(data)
+    }),
+
+  unlinkPersonFromProvider: (personId: string, providerId: string) =>
+    fetchJson<PersonAugmentation>(`/augment/${personId}/provider-link/${providerId}`, {
+      method: 'DELETE'
+    }),
+
+  getPersonProviderLinks: (personId: string) =>
+    fetchJson<ProviderPersonMapping[]>(`/augment/${personId}/provider-links`)
 };
 
 // Browser types
@@ -154,4 +224,14 @@ export interface ScrapedPersonData {
 }
 
 // Re-export shared types
-export type { PersonAugmentation, PlatformReference, PersonPhoto, PersonDescription, PlatformType } from '@fsf/shared';
+export type {
+  PersonAugmentation,
+  PlatformReference,
+  PersonPhoto,
+  PersonDescription,
+  PlatformType,
+  GenealogyProviderConfig,
+  GenealogyProviderRegistry,
+  ProviderPersonMapping,
+  GenealogyAuthType
+} from '@fsf/shared';

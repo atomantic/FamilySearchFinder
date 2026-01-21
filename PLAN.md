@@ -146,7 +146,88 @@ Updated to search:
 
 ---
 
-## Future Work (Phase 6)
+## Multi-Provider Genealogy System (Phase 6) ✅
+
+### Overview
+Added support for configuring multiple genealogy providers (FamilySearch, MyHeritage, Geni, WikiTree, FindMyPast) and mapping database nodes to provider records.
+
+### Supported Providers
+
+| Provider | Auth | Rate Limits |
+|----------|------|-------------|
+| FamilySearch | Session Token | 100 req/60s |
+| MyHeritage | OAuth 2.0 | 60 req/60s |
+| Geni | OAuth 2.0 | 40 req/10s |
+| WikiTree | None (public) | 60 req/60s |
+| FindMyPast | API Key | 30 req/60s |
+| Ancestry | OAuth 2.0 | 30 req/60s |
+| Find A Grave | None | 20 req/60s |
+
+### New Types (shared/src/index.ts)
+- `GenealogyAuthType` - oauth2, api_key, session_token, none
+- `GenealogyProviderConfig` - Provider configuration with credentials and rate limits
+- `GenealogyProviderRegistry` - Active provider and all configured providers
+- `ProviderPersonMapping` - Link between a person and an external provider record
+
+### New Backend Service
+**File:** `server/src/services/genealogy-provider.service.ts`
+
+Methods:
+- `getProviders()` - Get all configured providers
+- `getProvider(id)` - Get single provider
+- `saveProvider(config)` - Create/update provider
+- `deleteProvider(id)` - Remove provider
+- `setActiveProvider(id)` - Set active provider for indexing
+- `testConnection(id)` - Test provider connectivity
+- `getProviderDefaults(platform)` - Get default settings for a platform
+
+### New API Routes
+**File:** `server/src/routes/genealogy-provider.routes.ts`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /api/genealogy-providers | List all providers |
+| GET | /api/genealogy-providers/:id | Get single provider |
+| POST | /api/genealogy-providers | Create provider |
+| PUT | /api/genealogy-providers/:id | Update provider |
+| DELETE | /api/genealogy-providers/:id | Delete provider |
+| POST | /api/genealogy-providers/:id/test | Test connection |
+| POST | /api/genealogy-providers/:id/activate | Set as active |
+| GET | /api/genealogy-providers/platforms | List available platforms |
+| GET | /api/genealogy-providers/defaults/:platform | Get platform defaults |
+
+### Person-Provider Linking
+**Extended:** `server/src/routes/augmentation.routes.ts`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| POST | /api/augment/:personId/provider-link | Link person to provider |
+| DELETE | /api/augment/:personId/provider-link/:providerId | Unlink |
+| GET | /api/augment/:personId/provider-links | Get all links |
+
+### Frontend Pages
+**New files:**
+- `client/src/pages/GenealogyProviders.tsx` - Provider list with status, test, activate
+- `client/src/pages/GenealogyProviderEdit.tsx` - Form for creating/editing providers
+
+**Routes:** `/providers/genealogy`, `/providers/genealogy/new`, `/providers/genealogy/:id/edit`
+
+### Person Detail Updates
+**File:** `client/src/components/person/PersonDetail.tsx`
+
+- Added "Provider Links" section
+- Link person to any configured provider with URL and external ID
+- Confidence indicator (high/medium/low)
+- Open in provider button
+- Unlink action
+
+### Data Storage
+- Provider config: `data/genealogy-providers.json`
+- Person mappings: `data/augment/{personId}.json` (providerMappings array)
+
+---
+
+## Future Work (Phase 7)
 
 Platform scrapers to be added:
 - `server/src/services/scrapers/base.scraper.ts` - Interface

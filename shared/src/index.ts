@@ -39,7 +39,54 @@ export interface Person {
 }
 
 // Platform reference for cross-platform linking
-export type PlatformType = 'familysearch' | 'wikipedia' | 'findagrave' | 'heritage' | 'ancestry' | 'geni' | 'wikitree';
+export type PlatformType = 'familysearch' | 'wikipedia' | 'findagrave' | 'heritage' | 'ancestry' | 'geni' | 'wikitree' | 'myheritage' | 'findmypast';
+
+// Genealogy provider authentication types
+export type GenealogyAuthType = 'oauth2' | 'api_key' | 'session_token' | 'none';
+
+// Configuration for a genealogy data provider
+export interface GenealogyProviderConfig {
+  id: string;
+  name: string;
+  platform: PlatformType;
+  enabled: boolean;
+  authType: GenealogyAuthType;
+  credentials?: {
+    accessToken?: string;
+    apiKey?: string;
+    clientId?: string;
+    clientSecret?: string;
+  };
+  rateLimit: {
+    requestsPerWindow: number;
+    windowSeconds: number;
+    minDelayMs: number;
+    maxDelayMs: number;
+  };
+  baseUrl: string;
+  timeout: number;
+  lastConnected?: string;
+  connectionStatus?: 'connected' | 'disconnected' | 'error';
+}
+
+// Registry of all configured genealogy providers
+export interface GenealogyProviderRegistry {
+  activeProvider: string | null;
+  providers: Record<string, GenealogyProviderConfig>;
+}
+
+// Mapping a person to an external provider record
+export interface ProviderPersonMapping {
+  platform: PlatformType;
+  url: string;
+  externalId?: string;
+  linkedAt: string;
+  verified?: boolean;
+  providerId: string;
+  confidence?: 'high' | 'medium' | 'low';
+  matchedBy?: 'manual' | 'auto' | 'imported';
+  lastSynced?: string;
+}
 
 export interface PlatformReference {
   platform: PlatformType;
@@ -82,6 +129,9 @@ export interface PersonAugmentation {
   customPhotoUrl?: string;
   notes?: string;              // Research notes
 
+  // Provider-specific mappings (links to configured providers)
+  providerMappings?: ProviderPersonMapping[];
+
   updatedAt: string;
 }
 
@@ -98,6 +148,8 @@ export interface DatabaseInfo {
   rootId: string;
   rootName?: string;          // Name of the root person
   maxGenerations?: number;
+  sourceProvider?: string;    // Provider ID that was used to create this database
+  sourceRootExternalId?: string; // External ID from the source provider
 }
 
 // Person with ID included

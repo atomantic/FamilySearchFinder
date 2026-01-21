@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu } from 'lucide-react';
+import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 
 interface NavItem {
@@ -11,6 +11,7 @@ interface NavItem {
 const primaryNavItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: <Home size={20} /> },
   { path: '/indexer', label: 'Indexer', icon: <Download size={20} /> },
+  { path: '/providers/genealogy', label: 'Genealogy Providers', icon: <Database size={20} /> },
   { path: '/providers', label: 'AI Providers', icon: <Bot size={20} /> },
 ];
 
