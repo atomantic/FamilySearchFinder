@@ -11,13 +11,6 @@ interface PlatformOption {
   authType: GenealogyAuthType;
 }
 
-const defaultRateLimit = {
-  requestsPerWindow: 60,
-  windowSeconds: 60,
-  minDelayMs: 500,
-  maxDelayMs: 1500
-};
-
 export function GenealogyProviderEditPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();

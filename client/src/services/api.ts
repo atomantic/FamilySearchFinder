@@ -16,7 +16,10 @@ import type {
   FavoriteData,
   FavoritesList,
   FavoriteWithPerson,
-  SparseTreeResult
+  SparseTreeResult,
+  AncestryTreeResult,
+  AncestryFamilyUnit,
+  ExpandAncestryRequest
 } from '@fsf/shared';
 
 const BASE_URL = '/api';
@@ -234,7 +237,17 @@ export const api = {
     fetchJson<{ presetTags: string[]; allTags: string[] }>('/favorites/tags'),
 
   getSparseTree: (dbId: string) =>
-    fetchJson<SparseTreeResult>(`/favorites/sparse-tree/${dbId}`)
+    fetchJson<SparseTreeResult>(`/favorites/sparse-tree/${dbId}`),
+
+  // Ancestry Tree (FamilySearch-style visualization)
+  getAncestryTree: (dbId: string, personId: string, depth = 4) =>
+    fetchJson<AncestryTreeResult>(`/ancestry-tree/${dbId}/${personId}?depth=${depth}`),
+
+  expandAncestryGeneration: (dbId: string, request: ExpandAncestryRequest, depth = 2) =>
+    fetchJson<AncestryFamilyUnit>(`/ancestry-tree/${dbId}/expand?depth=${depth}`, {
+      method: 'POST',
+      body: JSON.stringify(request)
+    })
 };
 
 // Browser types
@@ -273,5 +286,9 @@ export type {
   FavoritesList,
   FavoriteWithPerson,
   SparseTreeNode,
-  SparseTreeResult
+  SparseTreeResult,
+  AncestryTreeResult,
+  AncestryFamilyUnit,
+  AncestryPersonCard,
+  ExpandAncestryRequest
 } from '@fsf/shared';

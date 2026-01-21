@@ -302,7 +302,74 @@ Added ability to mark people as "favorites" with notes about why they're interes
 
 ---
 
-## Future Work (Phase 8)
+## FamilySearch-Style Ancestry Tree (Phase 8) ✅
+
+### Overview
+Replaced the simple D3 tree view with a FamilySearch-style ancestry visualization featuring:
+- Paired father/mother cards with gender-colored borders (blue/pink)
+- Circular photos with fallback placeholders
+- Click-to-expand ">" buttons for lazy loading ancestors
+- Horizontal layout (root left, ancestors right)
+- Gray connection lines between family units
+- D3.js-powered zoom/pan
+
+### New Types (shared/src/index.ts)
+- `AncestryPersonCard` - Person card data with id, name, lifespan, gender, photoUrl, hasMoreAncestors
+- `AncestryFamilyUnit` - Family unit with father/mother cards and nested parentUnits
+- `AncestryTreeResult` - Full tree with rootPerson, rootSpouse, parentUnits, maxGenerationLoaded
+- `ExpandAncestryRequest` - Request to expand a specific person's ancestors
+
+### Backend Service
+**File:** `server/src/services/ancestry-tree.service.ts`
+
+Methods:
+- `getAncestryTree(dbId, personId, depth)` - Build ancestry tree (default 4 generations)
+- `expandAncestry(dbId, fatherId, motherId, depth)` - Expand specific parents for lazy loading
+
+Photo resolution priority:
+1. Wikipedia photo (from augmentation)
+2. Scraped FamilySearch photo
+3. Placeholder icon
+
+### API Routes
+**File:** `server/src/routes/ancestry-tree.routes.ts`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /api/ancestry-tree/:dbId/:personId | Get ancestry tree (4 gen default) |
+| POST | /api/ancestry-tree/:dbId/expand | Expand specific parents |
+
+### Client API
+**File:** `client/src/services/api.ts`
+- `getAncestryTree(dbId, personId, depth)` - Fetch ancestry tree
+- `expandAncestryGeneration(dbId, request, depth)` - Expand ancestors lazily
+
+### Frontend Components
+**New folder:** `client/src/components/ancestry-tree/`
+
+| Component | Description |
+|-----------|-------------|
+| `PersonCard.tsx` | Individual person card with photo, name, lifespan, gender border, expand button |
+| `FamilyUnitCard.tsx` | Vertical stack of father/mother PersonCards |
+| `ConnectionLine.tsx` | SVG path components for tree connections |
+| `AncestryTreeView.tsx` | Main component with D3 zoom/pan, recursive rendering |
+| `index.ts` | Barrel export |
+
+### Styling
+- Male border: `border-l-4 border-blue-500`
+- Female border: `border-l-4 border-pink-500`
+- Unknown border: `border-l-4 border-gray-500`
+- Circular 48px photos with User icon fallback
+- Dark theme compatible colors
+
+### Routes Updated
+**File:** `client/src/App.tsx`
+- `/tree/:dbId` → `AncestryTreeView` (replaced old TreeView)
+- `/tree/:dbId/:personId` → `AncestryTreeView`
+
+---
+
+## Future Work (Phase 9)
 
 Platform scrapers to be added:
 - `server/src/services/scrapers/base.scraper.ts` - Interface

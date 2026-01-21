@@ -303,3 +303,38 @@ export interface FavoritesList {
   totalPages: number;
   allTags: string[];  // All unique tags across favorites
 }
+
+// Ancestry Tree Types (FamilySearch-style visualization)
+
+// Person card data for ancestry tree
+export interface AncestryPersonCard {
+  id: string;
+  name: string;
+  lifespan: string;
+  gender: 'male' | 'female' | 'unknown';
+  photoUrl?: string;
+  hasMoreAncestors: boolean;
+}
+
+// Family unit containing father and mother cards
+export interface AncestryFamilyUnit {
+  id: string;
+  father?: AncestryPersonCard;
+  mother?: AncestryPersonCard;
+  generation: number;
+  parentUnits?: AncestryFamilyUnit[];
+}
+
+// Full ancestry tree result
+export interface AncestryTreeResult {
+  rootPerson: AncestryPersonCard;
+  rootSpouse?: AncestryPersonCard;
+  parentUnits?: AncestryFamilyUnit[];
+  maxGenerationLoaded: number;
+}
+
+// Request to expand a specific generation
+export interface ExpandAncestryRequest {
+  fatherId?: string;
+  motherId?: string;
+}

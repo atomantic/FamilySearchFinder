@@ -13,6 +13,7 @@ import { browserRouter } from './routes/browser.routes.js';
 import { augmentationRouter } from './routes/augmentation.routes.js';
 import { genealogyProviderRouter } from './routes/genealogy-provider.routes.js';
 import { favoritesRouter } from './routes/favorites.routes.js';
+import { ancestryTreeRouter } from './routes/ancestry-tree.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { requestLogger } from './middleware/requestLogger.js';
 
@@ -47,6 +48,7 @@ app.use('/api/browser', browserRouter);
 app.use('/api/augment', augmentationRouter);
 app.use('/api/genealogy-providers', genealogyProviderRouter);
 app.use('/api/favorites', favoritesRouter);
+app.use('/api/ancestry-tree', ancestryTreeRouter);
 
 // Health check
 app.get('/api/health', (_req, res) => {
