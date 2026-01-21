@@ -112,6 +112,14 @@ export interface PersonDescription {
   language?: string;
 }
 
+// Favorite data for a person
+export interface FavoriteData {
+  isFavorite: boolean;
+  whyInteresting: string;
+  addedAt: string;
+  tags: string[];  // Categorization (e.g., "royalty", "notable", "immigrant", "revolutionary")
+}
+
 // Augmentation record for cross-platform data
 export interface PersonAugmentation {
   id: string;                  // FamilySearch ID
@@ -131,6 +139,9 @@ export interface PersonAugmentation {
 
   // Provider-specific mappings (links to configured providers)
   providerMappings?: ProviderPersonMapping[];
+
+  // Favorite marking
+  favorite?: FavoriteData;
 
   updatedAt: string;
 }
@@ -250,4 +261,45 @@ export interface ApiResponse<T> {
   success: boolean;
   data?: T;
   error?: string;
+}
+
+// Sparse tree node for favorites visualization
+export interface SparseTreeNode {
+  id: string;
+  name: string;
+  lifespan: string;
+  photoUrl?: string;
+  whyInteresting?: string;
+  tags?: string[];
+  generationFromRoot: number;
+  generationsSkipped?: number;  // From previous visible node
+  isFavorite: boolean;
+  children?: SparseTreeNode[];
+}
+
+// Sparse tree result
+export interface SparseTreeResult {
+  root: SparseTreeNode;
+  totalFavorites: number;
+  maxGeneration: number;
+}
+
+// Favorite with person info (for listing)
+export interface FavoriteWithPerson {
+  personId: string;
+  name: string;
+  lifespan: string;
+  photoUrl?: string;
+  favorite: FavoriteData;
+  databases: string[];  // Which databases contain this person
+}
+
+// Favorites list response
+export interface FavoritesList {
+  favorites: FavoriteWithPerson[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  allTags: string[];  // All unique tags across favorites
 }

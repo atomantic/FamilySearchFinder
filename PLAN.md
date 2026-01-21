@@ -227,7 +227,82 @@ Methods:
 
 ---
 
-## Future Work (Phase 7)
+## Favorites & Sparse Family Tree (Phase 7) ✅
+
+### Overview
+Added ability to mark people as "favorites" with notes about why they're interesting, view all favorites on a dedicated page, and generate a sparse family tree visualization showing the lineage from root to selected interesting ancestors.
+
+### New Types (shared/src/index.ts)
+- `FavoriteData` - isFavorite, whyInteresting, addedAt, tags[]
+- `SparseTreeNode` - Node for visualization with generation info
+- `SparseTreeResult` - Tree root, totalFavorites, maxGeneration
+- `FavoriteWithPerson` - Favorite with person details for listing
+- `FavoritesList` - Paginated list of favorites with allTags
+
+### Extended Type
+- `PersonAugmentation` - Added `favorite?: FavoriteData` field
+
+### Backend Services
+**File:** `server/src/services/favorites.service.ts`
+- `getFavorite(personId)` - Get favorite status
+- `setFavorite(personId, whyInteresting, tags)` - Mark as favorite
+- `updateFavorite(personId, whyInteresting, tags)` - Update favorite
+- `removeFavorite(personId)` - Remove from favorites
+- `listFavorites(page, limit)` - List all favorites with pagination
+- `getFavoritesInDatabase(dbId)` - Get favorites in a specific database
+- `getAllTags()` - Get all unique tags
+
+**File:** `server/src/services/sparse-tree.service.ts`
+- `getSparseTree(dbId)` - Generate sparse tree showing only favorites
+
+### API Routes
+**File:** `server/src/routes/favorites.routes.ts`
+
+| Method | Path | Description |
+|--------|------|-------------|
+| GET | /api/favorites | List all favorites (paginated) |
+| GET | /api/favorites/tags | Get preset and all tags |
+| GET | /api/favorites/in-database/:dbId | Get favorites in database |
+| GET | /api/favorites/sparse-tree/:dbId | Get sparse tree visualization |
+| GET | /api/favorites/:personId | Get favorite status |
+| POST | /api/favorites/:personId | Mark as favorite |
+| PUT | /api/favorites/:personId | Update favorite |
+| DELETE | /api/favorites/:personId | Remove from favorites |
+
+### Frontend Components
+**New files:**
+- `client/src/components/favorites/FavoriteButton.tsx` - Star toggle button
+- `client/src/components/favorites/WhyInterestingModal.tsx` - Modal for adding/editing favorites
+- `client/src/components/favorites/FavoritesPage.tsx` - List of all favorites with filtering
+- `client/src/components/favorites/SparseTreePage.tsx` - D3.js visualization of sparse tree
+
+**Routes:** `/favorites`, `/favorites/sparse-tree/:dbId`
+
+### Navigation Updates
+**File:** `client/src/components/layout/Sidebar.tsx`
+- Added "Favorites" link to primary navigation
+- Added "Sparse Tree" link to database-specific navigation
+
+### PersonDetail Integration
+**File:** `client/src/components/person/PersonDetail.tsx`
+- Added FavoriteButton next to gender badge
+
+### Preset Tags
+- royalty, immigrant, revolutionary, founder, notable, military, religious
+- scientist, artist, politician, explorer, criminal
+
+### Sparse Tree Features
+- Vertical layout (root at top)
+- Shows only favorites and branch points
+- Generation skip labels on edges (e.g., "12 gen")
+- Node cards with photo, name, lifespan, tags
+- Click to see details panel
+- Zoom/pan controls
+- SVG export functionality
+
+---
+
+## Future Work (Phase 8)
 
 Platform scrapers to be added:
 - `server/src/services/scrapers/base.scraper.ts` - Interface

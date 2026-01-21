@@ -2,8 +2,9 @@ import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen, Calendar, Heart, Database, Unlink } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation, GenealogyProviderConfig, GenealogyProviderRegistry, ProviderPersonMapping, PlatformType } from '@fsf/shared';
+import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation, GenealogyProviderRegistry, ProviderPersonMapping } from '@fsf/shared';
 import { api, ScrapedPersonData } from '../../services/api';
+import { FavoriteButton } from '../favorites/FavoriteButton';
 
 interface CachedLineage {
   path: PathResult;
@@ -381,6 +382,8 @@ export function PersonDetail() {
                 {person.gender === 'male' ? 'Male' : 'Female'}
               </span>
             )}
+            {/* Favorite button */}
+            <FavoriteButton personId={personId!} personName={person.name} />
             <Link
               to={`/tree/${dbId}/${personId}`}
               className="text-neutral-400 hover:text-app-accent flex items-center gap-1 text-sm"

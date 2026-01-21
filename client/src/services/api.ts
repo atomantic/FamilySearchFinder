@@ -12,7 +12,11 @@ import type {
   GenealogyProviderRegistry,
   ProviderPersonMapping,
   PlatformType,
-  GenealogyAuthType
+  GenealogyAuthType,
+  FavoriteData,
+  FavoritesList,
+  FavoriteWithPerson,
+  SparseTreeResult
 } from '@fsf/shared';
 
 const BASE_URL = '/api';
@@ -199,7 +203,38 @@ export const api = {
     }),
 
   getPersonProviderLinks: (personId: string) =>
-    fetchJson<ProviderPersonMapping[]>(`/augment/${personId}/provider-links`)
+    fetchJson<ProviderPersonMapping[]>(`/augment/${personId}/provider-links`),
+
+  // Favorites
+  listFavorites: (page = 1, limit = 50) =>
+    fetchJson<FavoritesList>(`/favorites?page=${page}&limit=${limit}`),
+
+  getFavorite: (personId: string) =>
+    fetchJson<FavoriteData | null>(`/favorites/${personId}`),
+
+  addFavorite: (personId: string, whyInteresting: string, tags: string[] = []) =>
+    fetchJson<PersonAugmentation>(`/favorites/${personId}`, {
+      method: 'POST',
+      body: JSON.stringify({ whyInteresting, tags })
+    }),
+
+  updateFavorite: (personId: string, whyInteresting: string, tags: string[] = []) =>
+    fetchJson<PersonAugmentation>(`/favorites/${personId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ whyInteresting, tags })
+    }),
+
+  removeFavorite: (personId: string) =>
+    fetchJson<PersonAugmentation>(`/favorites/${personId}`, { method: 'DELETE' }),
+
+  getFavoritesInDatabase: (dbId: string) =>
+    fetchJson<FavoriteWithPerson[]>(`/favorites/in-database/${dbId}`),
+
+  getFavoriteTags: () =>
+    fetchJson<{ presetTags: string[]; allTags: string[] }>('/favorites/tags'),
+
+  getSparseTree: (dbId: string) =>
+    fetchJson<SparseTreeResult>(`/favorites/sparse-tree/${dbId}`)
 };
 
 // Browser types
@@ -233,5 +268,10 @@ export type {
   GenealogyProviderConfig,
   GenealogyProviderRegistry,
   ProviderPersonMapping,
-  GenealogyAuthType
+  GenealogyAuthType,
+  FavoriteData,
+  FavoritesList,
+  FavoriteWithPerson,
+  SparseTreeNode,
+  SparseTreeResult
 } from '@fsf/shared';

@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database } from 'lucide-react';
+import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database, Star, Network } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 
 interface NavItem {
@@ -10,6 +10,7 @@ interface NavItem {
 
 const primaryNavItems: NavItem[] = [
   { path: '/', label: 'Dashboard', icon: <Home size={20} /> },
+  { path: '/favorites', label: 'Favorites', icon: <Star size={20} /> },
   { path: '/indexer', label: 'Indexer', icon: <Download size={20} /> },
   { path: '/providers/genealogy', label: 'Genealogy Providers', icon: <Database size={20} /> },
   { path: '/providers', label: 'AI Providers', icon: <Bot size={20} /> },
@@ -27,10 +28,13 @@ export function Sidebar() {
     { path: `/tree/${currentDbId}`, label: 'Tree View', icon: <GitBranch size={20} /> },
     { path: `/search/${currentDbId}`, label: 'Search', icon: <Search size={20} /> },
     { path: `/path/${currentDbId}`, label: 'Find Path', icon: <Route size={20} /> },
+    { path: `/favorites/sparse-tree/${currentDbId}`, label: 'Sparse Tree', icon: <Network size={20} /> },
   ] : [];
 
   const isActive = (path: string) => {
     if (path === '/') return location.pathname === '/';
+    // For /providers, only match exactly (not /providers/genealogy)
+    if (path === '/providers') return location.pathname === '/providers';
     return location.pathname.startsWith(path);
   };
 
@@ -134,12 +138,13 @@ export function Sidebar() {
 }
 
 function extractDbIdFromPath(pathname: string): string | null {
-  // Match patterns like /tree/db-XXX, /search/db-XXX, /path/db-XXX, /person/db-XXX/YYY
+  // Match patterns like /tree/db-XXX, /search/db-XXX, /path/db-XXX, /person/db-XXX/YYY, /favorites/sparse-tree/db-XXX
   const patterns = [
     /^\/tree\/(db-[^/]+)/,
     /^\/search\/(db-[^/]+)/,
     /^\/path\/(db-[^/]+)/,
     /^\/person\/(db-[^/]+)/,
+    /^\/favorites\/sparse-tree\/(db-[^/]+)/,
   ];
 
   for (const pattern of patterns) {
