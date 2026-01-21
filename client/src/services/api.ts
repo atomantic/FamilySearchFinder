@@ -6,7 +6,8 @@ import type {
   PathResult,
   TreeNode,
   IndexerStatus,
-  IndexOptions
+  IndexOptions,
+  PersonAugmentation
 } from '@fsf/shared';
 
 const BASE_URL = '/api';
@@ -152,13 +153,5 @@ export interface ScrapedPersonData {
   scrapedAt: string;
 }
 
-export interface PersonAugmentation {
-  id: string;
-  wikipediaUrl?: string;
-  wikipediaTitle?: string;
-  wikipediaDescription?: string;
-  wikipediaPhotoUrl?: string;
-  customPhotoUrl?: string;
-  customDescription?: string;
-  updatedAt: string;
-}
+// Re-export shared types
+export type { PersonAugmentation, PlatformReference, PersonPhoto, PersonDescription, PlatformType } from '@fsf/shared';

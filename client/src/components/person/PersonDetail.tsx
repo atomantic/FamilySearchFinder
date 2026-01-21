@@ -1,9 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen } from 'lucide-react';
+import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen, Calendar, Heart } from 'lucide-react';
 import toast from 'react-hot-toast';
-import type { PersonWithId, PathResult, DatabaseInfo } from '@fsf/shared';
-import { api, ScrapedPersonData, PersonAugmentation } from '../../services/api';
+import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation } from '@fsf/shared';
+import { api, ScrapedPersonData } from '../../services/api';
 
 interface CachedLineage {
   path: PathResult;
@@ -52,10 +52,22 @@ function getOrdinal(n: number): string {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
+// Platform display config
+const platformConfig: Record<string, { label: string; color: string }> = {
+  familysearch: { label: 'FamilySearch', color: 'bg-green-600/20 text-green-400' },
+  wikipedia: { label: 'Wikipedia', color: 'bg-blue-600/20 text-blue-400' },
+  findagrave: { label: 'Find A Grave', color: 'bg-gray-600/20 text-gray-400' },
+  heritage: { label: 'Heritage', color: 'bg-amber-600/20 text-amber-400' },
+  ancestry: { label: 'Ancestry', color: 'bg-emerald-600/20 text-emerald-400' },
+  geni: { label: 'Geni', color: 'bg-cyan-600/20 text-cyan-400' },
+  wikitree: { label: 'WikiTree', color: 'bg-purple-600/20 text-purple-400' },
+};
+
 export function PersonDetail() {
   const { dbId, personId } = useParams<{ dbId: string; personId: string }>();
   const [person, setPerson] = useState<PersonWithId | null>(null);
   const [parentData, setParentData] = useState<Record<string, PersonWithId>>({});
+  const [spouseData, setSpouseData] = useState<Record<string, PersonWithId>>({});
   const [database, setDatabase] = useState<DatabaseInfo | null>(null);
   const [lineage, setLineage] = useState<PathResult | null>(null);
   const [scrapedData, setScrapedData] = useState<ScrapedPersonData | null>(null);
@@ -80,6 +92,7 @@ export function PersonDetail() {
     setHasPhoto(false);
     setHasWikiPhoto(false);
     setParentData({});
+    setSpouseData({});
     setWikiUrl('');
     setShowWikiInput(false);
 
@@ -102,13 +115,25 @@ export function PersonDetail() {
         // Fetch parent data for names
         if (personData.parents.length > 0) {
           const parentResults = await Promise.all(
-            personData.parents.map(pid => api.getPerson(dbId, pid).catch(() => null))
+            personData.parents.map((pid: string) => api.getPerson(dbId, pid).catch(() => null))
           );
           const parents: Record<string, PersonWithId> = {};
-          parentResults.forEach((p, idx) => {
+          parentResults.forEach((p: PersonWithId | null, idx: number) => {
             if (p) parents[personData.parents[idx]] = p;
           });
           setParentData(parents);
+        }
+
+        // Fetch spouse data for names
+        if (personData.spouses && personData.spouses.length > 0) {
+          const spouseResults = await Promise.all(
+            personData.spouses.map((sid: string) => api.getPerson(dbId, sid).catch(() => null))
+          );
+          const spouses: Record<string, PersonWithId> = {};
+          spouseResults.forEach((s: PersonWithId | null, idx: number) => {
+            if (s && personData.spouses) spouses[personData.spouses[idx]] = s;
+          });
+          setSpouseData(spouses);
         }
 
         // Check for cached lineage
@@ -198,8 +223,13 @@ export function PersonDetail() {
     : hasPhoto
       ? api.getPhotoUrl(personId!)
       : null;
-  // Use augmented description if available
-  const displayBio = augmentation?.wikipediaDescription || person.bio;
+
+  // Get primary description from augmentation
+  const wikiDescription = augmentation?.descriptions?.find(d => d.source === 'wikipedia')?.text;
+  const displayBio = wikiDescription || person.bio;
+
+  // Get Wikipedia platform info
+  const wikiPlatform = augmentation?.platforms?.find(p => p.platform === 'wikipedia');
 
   return (
     <div className="h-full flex flex-col">
@@ -269,6 +299,14 @@ export function PersonDetail() {
                 )}
               </button>
             )}
+            {/* Gender badge */}
+            {person.gender && person.gender !== 'unknown' && (
+              <span className={`px-2 py-0.5 rounded text-xs ${
+                person.gender === 'male' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'
+              }`}>
+                {person.gender === 'male' ? 'Male' : 'Female'}
+              </span>
+            )}
             <Link
               to={`/tree/${dbId}/${personId}`}
               className="text-neutral-400 hover:text-app-accent flex items-center gap-1 text-sm"
@@ -278,6 +316,14 @@ export function PersonDetail() {
             </Link>
           </div>
           <h1 className="text-3xl font-bold text-white">{person.name}</h1>
+
+          {/* Alternate names */}
+          {person.alternateNames && person.alternateNames.length > 0 && (
+            <p className="text-sm text-neutral-500 mt-1">
+              Also known as: {person.alternateNames.join(', ')}
+            </p>
+          )}
+
           <p className="text-xl text-neutral-400 mt-1">{person.lifespan}</p>
 
           {/* Scraped data notice */}
@@ -293,27 +339,96 @@ export function PersonDetail() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left column - Details */}
         <div className="lg:col-span-2 space-y-6">
-          {/* Quick facts row */}
-          <div className="flex flex-wrap gap-4">
-            {person.location && (
+          {/* Vital events row */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {/* Birth */}
+            {(person.birth?.date || person.birth?.place) && (
+              <div className="bg-app-card rounded-lg border border-app-border p-4">
+                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                  <Calendar size={16} className="text-green-400" />
+                  Birth
+                </h3>
+                {person.birth.date && (
+                  <p className="text-white">{person.birth.date}</p>
+                )}
+                {person.birth.place && (
+                  <p className="text-neutral-400 text-sm flex items-center gap-1">
+                    <MapPin size={12} />
+                    {person.birth.place}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Death */}
+            {(person.death?.date || person.death?.place) && (
+              <div className="bg-app-card rounded-lg border border-app-border p-4">
+                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                  <Calendar size={16} className="text-red-400" />
+                  Death
+                </h3>
+                {person.death.date && (
+                  <p className="text-white">{person.death.date}</p>
+                )}
+                {person.death.place && (
+                  <p className="text-neutral-400 text-sm flex items-center gap-1">
+                    <MapPin size={12} />
+                    {person.death.place}
+                  </p>
+                )}
+              </div>
+            )}
+
+            {/* Burial */}
+            {(person.burial?.date || person.burial?.place) && (
+              <div className="bg-app-card rounded-lg border border-app-border p-4">
+                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                  <MapPin size={16} className="text-neutral-400" />
+                  Burial
+                </h3>
+                {person.burial.date && (
+                  <p className="text-white">{person.burial.date}</p>
+                )}
+                {person.burial.place && (
+                  <p className="text-neutral-400 text-sm">{person.burial.place}</p>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Occupations */}
+          {person.occupations && person.occupations.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {person.occupations.map((occ, idx) => (
+                <div key={idx} className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border">
+                  <Briefcase size={18} className="text-app-warning" />
+                  <span className="text-neutral-300">{occ}</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Legacy location/occupation display for old data */}
+          {!person.birth?.place && !person.death?.place && person.location && (
+            <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border">
                 <MapPin size={18} className="text-app-accent" />
                 <span className="text-neutral-300">{person.location}</span>
               </div>
-            )}
-            {person.occupation && (
-              <div className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border">
-                <Briefcase size={18} className="text-app-warning" />
-                <span className="text-neutral-300">{person.occupation}</span>
-              </div>
-            )}
-          </div>
+            </div>
+          )}
+          {!person.occupations?.length && person.occupation && (
+            <div className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border w-fit">
+              <Briefcase size={18} className="text-app-warning" />
+              <span className="text-neutral-300">{person.occupation}</span>
+            </div>
+          )}
 
           {/* Biography / Wikipedia Description */}
           {displayBio && (
             <div className="bg-app-card rounded-lg border border-app-border p-5">
               <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
-                {augmentation?.wikipediaDescription ? (
+                {wikiDescription ? (
                   <>
                     <BookOpen size={18} className="text-blue-400" />
                     Wikipedia
@@ -323,9 +438,9 @@ export function PersonDetail() {
                 )}
               </h2>
               <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">{displayBio}</p>
-              {augmentation?.wikipediaUrl && (
+              {wikiPlatform?.url && (
                 <a
-                  href={augmentation.wikipediaUrl}
+                  href={wikiPlatform.url}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="inline-flex items-center gap-1 mt-3 text-sm text-blue-400 hover:text-blue-300"
@@ -338,10 +453,32 @@ export function PersonDetail() {
           )}
 
           {/* Original FamilySearch bio if we have Wikipedia description */}
-          {augmentation?.wikipediaDescription && person.bio && (
+          {wikiDescription && person.bio && (
             <div className="bg-app-card rounded-lg border border-app-border p-5">
               <h2 className="text-lg font-semibold text-white mb-3">FamilySearch Biography</h2>
               <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">{person.bio}</p>
+            </div>
+          )}
+
+          {/* Platform badges */}
+          {augmentation?.platforms && augmentation.platforms.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {augmentation.platforms.map((platform, idx) => {
+                const config = platformConfig[platform.platform] || { label: platform.platform, color: 'bg-neutral-600/20 text-neutral-400' };
+                return (
+                  <a
+                    key={idx}
+                    href={platform.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm ${config.color} hover:opacity-80 transition-opacity`}
+                  >
+                    <Link2 size={14} />
+                    {config.label}
+                    {platform.verified && <span className="text-green-400">✓</span>}
+                  </a>
+                );
+              })}
             </div>
           )}
 
@@ -358,7 +495,7 @@ export function PersonDetail() {
             </a>
 
             {/* Link Wikipedia button */}
-            {!showWikiInput && !augmentation?.wikipediaUrl && (
+            {!showWikiInput && !wikiPlatform && (
               <button
                 onClick={() => setShowWikiInput(true)}
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded-lg hover:bg-blue-600/30 transition-colors"
@@ -369,15 +506,15 @@ export function PersonDetail() {
             )}
 
             {/* Wikipedia URL already linked */}
-            {augmentation?.wikipediaUrl && (
+            {wikiPlatform && (
               <a
-                href={augmentation.wikipediaUrl}
+                href={wikiPlatform.url}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600/20 text-blue-400 border border-blue-600/30 rounded-lg hover:bg-blue-600/30 transition-colors"
               >
                 <BookOpen size={16} />
-                Wikipedia: {augmentation.wikipediaTitle || 'Linked'}
+                Wikipedia Linked
               </a>
             )}
           </div>
@@ -459,6 +596,33 @@ export function PersonDetail() {
               <p className="text-neutral-500 text-sm">No parents in database</p>
             )}
           </div>
+
+          {/* Spouses */}
+          {person.spouses && person.spouses.length > 0 && (
+            <div className="bg-app-card rounded-lg border border-app-border p-4">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-300 mb-3">
+                <Heart size={16} className="text-pink-400" />
+                Spouse{person.spouses.length > 1 ? 's' : ''}
+              </h2>
+              <div className="space-y-2">
+                {person.spouses.map(spouseId => {
+                  const spouse = spouseData[spouseId];
+                  return (
+                    <Link
+                      key={spouseId}
+                      to={`/person/${dbId}/${spouseId}`}
+                      className="flex items-center justify-between px-3 py-2 bg-app-bg rounded hover:bg-app-border transition-colors text-sm group"
+                    >
+                      <div className="flex flex-col">
+                        <span className="text-white">{spouse?.name || spouseId}</span>
+                        {spouse && <span className="text-neutral-500 text-xs">{spouse.lifespan}</span>}
+                      </div>
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          )}
 
           {/* Children */}
           {person.children.length > 0 && (

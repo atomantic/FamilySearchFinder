@@ -1,7 +1,7 @@
 import type { SearchParams, SearchResult, PersonWithId } from '@fsf/shared';
 import { databaseService } from './database.service.js';
 
-// Parse year from lifespan string, handling BC notation
+// Parse year from lifespan string or date string, handling BC notation
 const parseYear = (yearStr: string): number | null => {
   if (!yearStr) return null;
   const cleaned = yearStr.trim();
@@ -13,10 +13,29 @@ const parseYear = (yearStr: string): number | null => {
   return isNaN(num) ? null : num;
 };
 
-const getBirthYear = (lifespan: string): number | null => {
-  if (!lifespan) return null;
-  const parts = lifespan.split('-');
+const getBirthYear = (person: PersonWithId): number | null => {
+  // First try the new birth.date field
+  if (person.birth?.date) {
+    return parseYear(person.birth.date);
+  }
+  // Fall back to parsing lifespan
+  if (!person.lifespan) return null;
+  const parts = person.lifespan.split('-');
   return parseYear(parts[0]);
+};
+
+const getLocation = (person: PersonWithId): string | undefined => {
+  // Check new birth/death place fields first
+  return person.birth?.place || person.death?.place || person.location;
+};
+
+const getOccupations = (person: PersonWithId): string[] => {
+  // New format has occupations array
+  if (person.occupations && person.occupations.length > 0) {
+    return person.occupations;
+  }
+  // Fall back to single occupation field
+  return person.occupation ? [person.occupation] : [];
 };
 
 export const searchService = {
@@ -29,26 +48,40 @@ export const searchService = {
       ...person
     }));
 
-    // Text search (name, bio, occupation)
+    // Text search (name, bio, occupation, alternate names)
     if (q) {
       const query = q.toLowerCase();
-      results = results.filter(p =>
-        p.name?.toLowerCase().includes(query) ||
-        p.bio?.toLowerCase().includes(query) ||
-        p.occupation?.toLowerCase().includes(query)
-      );
+      results = results.filter(p => {
+        // Search in name
+        if (p.name?.toLowerCase().includes(query)) return true;
+        // Search in alternate names
+        if (p.alternateNames?.some(n => n.toLowerCase().includes(query))) return true;
+        // Search in bio
+        if (p.bio?.toLowerCase().includes(query)) return true;
+        // Search in occupations (new array format)
+        if (p.occupations?.some(o => o.toLowerCase().includes(query))) return true;
+        // Search in occupation (old format)
+        if (p.occupation?.toLowerCase().includes(query)) return true;
+        return false;
+      });
     }
 
-    // Location filter
+    // Location filter (checks birth.place, death.place, or location)
     if (location) {
       const loc = location.toLowerCase();
-      results = results.filter(p => p.location?.toLowerCase().includes(loc));
+      results = results.filter(p => {
+        const personLocation = getLocation(p);
+        return personLocation?.toLowerCase().includes(loc);
+      });
     }
 
     // Occupation filter
     if (occupation) {
       const occ = occupation.toLowerCase();
-      results = results.filter(p => p.occupation?.toLowerCase().includes(occ));
+      results = results.filter(p => {
+        const personOccupations = getOccupations(p);
+        return personOccupations.some(o => o.toLowerCase().includes(occ));
+      });
     }
 
     // Birth date filters
@@ -56,7 +89,7 @@ export const searchService = {
       const afterYear = parseYear(birthAfter);
       if (afterYear !== null) {
         results = results.filter(p => {
-          const birthYear = getBirthYear(p.lifespan);
+          const birthYear = getBirthYear(p);
           return birthYear !== null && birthYear >= afterYear;
         });
       }
@@ -66,7 +99,7 @@ export const searchService = {
       const beforeYear = parseYear(birthBefore);
       if (beforeYear !== null) {
         results = results.filter(p => {
-          const birthYear = getBirthYear(p.lifespan);
+          const birthYear = getBirthYear(p);
           return birthYear !== null && birthYear <= beforeYear;
         });
       }

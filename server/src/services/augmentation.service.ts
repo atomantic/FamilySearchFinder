@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import https from 'https';
 import http from 'http';
+import type { PersonAugmentation, PlatformReference, PersonPhoto, PersonDescription, PlatformType } from '@fsf/shared';
 
 const DATA_DIR = path.resolve(import.meta.dirname, '../../../data');
 const AUGMENT_DIR = path.join(DATA_DIR, 'augment');
@@ -11,7 +12,8 @@ const PHOTOS_DIR = path.join(DATA_DIR, 'photos');
 if (!fs.existsSync(AUGMENT_DIR)) fs.mkdirSync(AUGMENT_DIR, { recursive: true });
 if (!fs.existsSync(PHOTOS_DIR)) fs.mkdirSync(PHOTOS_DIR, { recursive: true });
 
-export interface PersonAugmentation {
+// Legacy interface for migration
+interface LegacyAugmentation {
   id: string;
   wikipediaUrl?: string;
   wikipediaTitle?: string;
@@ -26,6 +28,63 @@ export interface WikipediaData {
   title: string;
   description: string;
   photoUrl?: string;
+}
+
+/**
+ * Migrate legacy augmentation to new format
+ */
+function migrateAugmentation(legacy: LegacyAugmentation): PersonAugmentation {
+  const augmentation: PersonAugmentation = {
+    id: legacy.id,
+    platforms: [],
+    photos: [],
+    descriptions: [],
+    updatedAt: legacy.updatedAt,
+  };
+
+  // Migrate Wikipedia data
+  if (legacy.wikipediaUrl) {
+    augmentation.platforms.push({
+      platform: 'wikipedia',
+      url: legacy.wikipediaUrl,
+      linkedAt: legacy.updatedAt,
+    });
+
+    if (legacy.wikipediaPhotoUrl) {
+      augmentation.photos.push({
+        url: legacy.wikipediaPhotoUrl,
+        source: 'wikipedia',
+        isPrimary: true,
+      });
+    }
+
+    if (legacy.wikipediaDescription) {
+      augmentation.descriptions.push({
+        text: legacy.wikipediaDescription,
+        source: 'wikipedia',
+        language: 'en',
+      });
+    }
+  }
+
+  // Migrate custom data
+  if (legacy.customPhotoUrl) {
+    augmentation.customPhotoUrl = legacy.customPhotoUrl;
+  }
+  if (legacy.customDescription) {
+    augmentation.customBio = legacy.customDescription;
+  }
+
+  return augmentation;
+}
+
+/**
+ * Check if augmentation is in legacy format
+ */
+function isLegacyFormat(data: unknown): data is LegacyAugmentation {
+  const obj = data as Record<string, unknown>;
+  // Legacy format has wikipediaUrl but not platforms array
+  return obj && 'wikipediaUrl' in obj && !('platforms' in obj);
 }
 
 function downloadImage(url: string, destPath: string): Promise<void> {
@@ -70,12 +129,122 @@ export const augmentationService = {
   getAugmentation(personId: string): PersonAugmentation | null {
     const filePath = path.join(AUGMENT_DIR, `${personId}.json`);
     if (!fs.existsSync(filePath)) return null;
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+    const data = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+
+    // Migrate legacy format if needed
+    if (isLegacyFormat(data)) {
+      const migrated = migrateAugmentation(data);
+      // Save migrated version
+      this.saveAugmentation(migrated);
+      return migrated;
+    }
+
+    return data as PersonAugmentation;
   },
 
   saveAugmentation(data: PersonAugmentation): void {
     const filePath = path.join(AUGMENT_DIR, `${data.id}.json`);
     fs.writeFileSync(filePath, JSON.stringify(data, null, 2));
+  },
+
+  /**
+   * Add or update a platform reference
+   */
+  addPlatform(personId: string, platform: PlatformType, url: string, externalId?: string): PersonAugmentation {
+    const existing = this.getAugmentation(personId) || {
+      id: personId,
+      platforms: [],
+      photos: [],
+      descriptions: [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Check if platform already linked
+    const existingPlatform = existing.platforms.find(p => p.platform === platform);
+    if (existingPlatform) {
+      existingPlatform.url = url;
+      if (externalId) existingPlatform.externalId = externalId;
+      existingPlatform.linkedAt = new Date().toISOString();
+    } else {
+      existing.platforms.push({
+        platform,
+        url,
+        externalId,
+        linkedAt: new Date().toISOString(),
+      });
+    }
+
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
+  },
+
+  /**
+   * Add a photo from a source
+   */
+  addPhoto(personId: string, url: string, source: string, isPrimary = false, localPath?: string): PersonAugmentation {
+    const existing = this.getAugmentation(personId) || {
+      id: personId,
+      platforms: [],
+      photos: [],
+      descriptions: [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    // If setting as primary, unset other primary photos
+    if (isPrimary) {
+      existing.photos.forEach(p => p.isPrimary = false);
+    }
+
+    // Check if photo from this source already exists
+    const existingPhoto = existing.photos.find(p => p.source === source);
+    if (existingPhoto) {
+      existingPhoto.url = url;
+      existingPhoto.isPrimary = isPrimary;
+      if (localPath) existingPhoto.localPath = localPath;
+    } else {
+      existing.photos.push({
+        url,
+        source,
+        isPrimary,
+        localPath,
+      });
+    }
+
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
+  },
+
+  /**
+   * Add a description from a source
+   */
+  addDescription(personId: string, text: string, source: string, language = 'en'): PersonAugmentation {
+    const existing = this.getAugmentation(personId) || {
+      id: personId,
+      platforms: [],
+      photos: [],
+      descriptions: [],
+      updatedAt: new Date().toISOString(),
+    };
+
+    // Check if description from this source already exists
+    const existingDesc = existing.descriptions.find(d => d.source === source);
+    if (existingDesc) {
+      existingDesc.text = text;
+      existingDesc.language = language;
+    } else {
+      existing.descriptions.push({
+        text,
+        source,
+        language,
+      });
+    }
+
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
   },
 
   async scrapeWikipedia(url: string): Promise<WikipediaData> {
@@ -88,12 +257,12 @@ export const augmentationService = {
         }
       };
 
-      const fetchUrl = (fetchUrl: string) => {
-        https.get(fetchUrl, options, (response) => {
+      const doFetch = (targetUrl: string) => {
+        https.get(targetUrl, options, (response) => {
           if (response.statusCode === 301 || response.statusCode === 302) {
             const redirectUrl = response.headers.location;
             if (redirectUrl) {
-              fetchUrl(redirectUrl.startsWith('http') ? redirectUrl : `https:${redirectUrl}`);
+              doFetch(redirectUrl.startsWith('http') ? redirectUrl : `https:${redirectUrl}`);
               return;
             }
           }
@@ -103,7 +272,7 @@ export const augmentationService = {
         }).on('error', reject);
       };
 
-      fetchUrl(url);
+      doFetch(url);
     });
 
     console.log(`[augment] Fetched ${html.length} bytes from Wikipedia`);
@@ -193,19 +362,56 @@ export const augmentationService = {
     console.log(`[augment] Scraped Wikipedia: ${wikiData.title}`);
 
     // Get existing augmentation or create new
-    const existing = this.getAugmentation(personId) || { id: personId, updatedAt: '' };
-
-    const augmentation: PersonAugmentation = {
-      ...existing,
-      wikipediaUrl,
-      wikipediaTitle: wikiData.title,
-      wikipediaDescription: wikiData.description,
-      wikipediaPhotoUrl: wikiData.photoUrl,
-      updatedAt: new Date().toISOString()
+    const existing = this.getAugmentation(personId) || {
+      id: personId,
+      platforms: [],
+      photos: [],
+      descriptions: [],
+      updatedAt: new Date().toISOString(),
     };
 
-    // Download Wikipedia photo if available
+    // Add or update Wikipedia platform reference
+    const existingPlatform = existing.platforms.find(p => p.platform === 'wikipedia');
+    if (existingPlatform) {
+      existingPlatform.url = wikipediaUrl;
+      existingPlatform.linkedAt = new Date().toISOString();
+    } else {
+      existing.platforms.push({
+        platform: 'wikipedia',
+        url: wikipediaUrl,
+        linkedAt: new Date().toISOString(),
+      });
+    }
+
+    // Add or update Wikipedia description
+    const existingDesc = existing.descriptions.find(d => d.source === 'wikipedia');
+    if (existingDesc) {
+      existingDesc.text = wikiData.description;
+    } else if (wikiData.description) {
+      existing.descriptions.push({
+        text: wikiData.description,
+        source: 'wikipedia',
+        language: 'en',
+      });
+    }
+
+    // Add or update Wikipedia photo
     if (wikiData.photoUrl) {
+      const existingPhoto = existing.photos.find(p => p.source === 'wikipedia');
+      const isPrimary = existing.photos.length === 0; // Primary if first photo
+
+      if (existingPhoto) {
+        existingPhoto.url = wikiData.photoUrl;
+        if (isPrimary) existingPhoto.isPrimary = true;
+      } else {
+        existing.photos.push({
+          url: wikiData.photoUrl,
+          source: 'wikipedia',
+          isPrimary,
+        });
+      }
+
+      // Download Wikipedia photo
       const ext = wikiData.photoUrl.includes('.png') ? 'png' : 'jpg';
       const photoPath = path.join(PHOTOS_DIR, `${personId}-wiki.${ext}`);
 
@@ -215,11 +421,49 @@ export const augmentationService = {
 
       if (fs.existsSync(photoPath)) {
         console.log(`[augment] Downloaded wiki photo to ${photoPath}`);
+        // Update local path
+        const photo = existing.photos.find(p => p.source === 'wikipedia');
+        if (photo) {
+          photo.localPath = photoPath;
+          photo.downloadedAt = new Date().toISOString();
+        }
       }
     }
 
-    this.saveAugmentation(augmentation);
-    return augmentation;
+    existing.updatedAt = new Date().toISOString();
+    this.saveAugmentation(existing);
+    return existing;
+  },
+
+  /**
+   * Get primary photo for a person
+   */
+  getPrimaryPhoto(personId: string): PersonPhoto | null {
+    const augmentation = this.getAugmentation(personId);
+    if (!augmentation) return null;
+
+    // First try to find explicitly marked primary photo
+    const primary = augmentation.photos.find(p => p.isPrimary);
+    if (primary) return primary;
+
+    // Fall back to first photo
+    return augmentation.photos[0] || null;
+  },
+
+  /**
+   * Get primary description for a person
+   */
+  getPrimaryDescription(personId: string): PersonDescription | null {
+    const augmentation = this.getAugmentation(personId);
+    if (!augmentation) return null;
+
+    // Prefer custom bio
+    if (augmentation.customBio) {
+      return { text: augmentation.customBio, source: 'custom' };
+    }
+
+    // Return first description
+    return augmentation.descriptions[0] || null;
   },
 
   getWikiPhotoPath(personId: string): string | null {
@@ -232,5 +476,22 @@ export const augmentationService = {
 
   hasWikiPhoto(personId: string): boolean {
     return this.getWikiPhotoPath(personId) !== null;
-  }
+  },
+
+  /**
+   * Check if a platform is linked for a person
+   */
+  hasPlatform(personId: string, platform: PlatformType): boolean {
+    const augmentation = this.getAugmentation(personId);
+    if (!augmentation) return false;
+    return augmentation.platforms.some(p => p.platform === platform);
+  },
+
+  /**
+   * Get all linked platforms for a person
+   */
+  getLinkedPlatforms(personId: string): PlatformReference[] {
+    const augmentation = this.getAugmentation(personId);
+    return augmentation?.platforms || [];
+  },
 };

@@ -1,12 +1,88 @@
+// Vital event (birth, death, burial)
+export interface VitalEvent {
+  date?: string;               // Original format (supports BC notation)
+  dateFormal?: string;         // ISO-like formal date (+1151, -1620 for BC)
+  place?: string;
+  placeId?: string;            // For future geo features
+}
+
 // Person data stored in graph database
 export interface Person {
+  // Identity
   name: string;
-  lifespan: string;
-  location?: string;
-  occupation?: string;
-  bio?: string;
-  parents: string[];
+  alternateNames?: string[];   // Aliases, maiden names, etc.
+  gender?: 'male' | 'female' | 'unknown';
+  living: boolean;
+
+  // Vital Events
+  birth?: VitalEvent;
+  death?: VitalEvent;
+  burial?: VitalEvent;
+
+  // Life Details
+  occupations?: string[];      // Multiple occupations/titles
+  religion?: string;
+  bio?: string;                // FamilySearch life sketch
+
+  // Relationships (FamilySearch IDs)
+  parents: string[];           // [fatherId, motherId] convention
   children: string[];
+  spouses?: string[];
+
+  // Metadata
+  lastModified?: string;       // When FS record was last updated
+
+  // Compatibility fields (computed from above)
+  lifespan: string;            // Computed from birth.date and death.date
+  location?: string;           // First available place (birth or death)
+  occupation?: string;         // First occupation (for backwards compat)
+}
+
+// Platform reference for cross-platform linking
+export type PlatformType = 'familysearch' | 'wikipedia' | 'findagrave' | 'heritage' | 'ancestry' | 'geni' | 'wikitree';
+
+export interface PlatformReference {
+  platform: PlatformType;
+  url: string;
+  externalId?: string;         // Platform-specific ID
+  linkedAt: string;            // When we linked it
+  verified?: boolean;          // Manual verification flag
+}
+
+// Photo from any source
+export interface PersonPhoto {
+  url: string;
+  source: string;              // Which platform
+  localPath?: string;          // Downloaded copy
+  isPrimary?: boolean;
+  downloadedAt?: string;
+}
+
+// Description from any source
+export interface PersonDescription {
+  text: string;
+  source: string;
+  language?: string;
+}
+
+// Augmentation record for cross-platform data
+export interface PersonAugmentation {
+  id: string;                  // FamilySearch ID
+
+  // Platform links
+  platforms: PlatformReference[];
+
+  // Consolidated data from all sources
+  photos: PersonPhoto[];
+
+  descriptions: PersonDescription[];
+
+  // Custom overrides (user-provided)
+  customBio?: string;
+  customPhotoUrl?: string;
+  notes?: string;              // Research notes
+
+  updatedAt: string;
 }
 
 // Graph database format (db-{id}.json)

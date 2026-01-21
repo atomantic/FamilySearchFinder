@@ -47,17 +47,21 @@ router.post('/:personId/wikipedia', async (req: Request, res: Response) => {
 // Update custom augmentation data
 router.put('/:personId', async (req: Request, res: Response) => {
   const { personId } = req.params;
-  const { customDescription, customPhotoUrl } = req.body;
+  const { customBio, customPhotoUrl, notes } = req.body;
 
   const existing = augmentationService.getAugmentation(personId) || {
     id: personId,
+    platforms: [],
+    photos: [],
+    descriptions: [],
     updatedAt: ''
   };
 
   const updated = {
     ...existing,
-    customDescription: customDescription ?? existing.customDescription,
+    customBio: customBio ?? existing.customBio,
     customPhotoUrl: customPhotoUrl ?? existing.customPhotoUrl,
+    notes: notes ?? existing.notes,
     updatedAt: new Date().toISOString()
   };
 
