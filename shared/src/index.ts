@@ -96,6 +96,7 @@ export interface DatabaseInfo {
   filename: string;
   personCount: number;
   rootId: string;
+  rootName?: string;          // Name of the root person
   maxGenerations?: number;
 }
 

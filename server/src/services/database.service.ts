@@ -20,13 +20,14 @@ export const databaseService = {
       const rootId = hasGenerations ? parts.slice(0, -1).join('-') : id;
       const maxGenerations = hasGenerations ? parseInt(parts[parts.length - 1]) : undefined;
 
-      // Get person count from file
+      // Get person count and root person name from file
       const filePath = path.join(DATA_DIR, filename);
       const content = fs.readFileSync(filePath, 'utf-8');
       const db: Database = JSON.parse(content);
       const personCount = Object.keys(db).length;
+      const rootName = db[rootId]?.name;
 
-      return { id, filename, personCount, rootId, maxGenerations };
+      return { id, filename, personCount, rootId, rootName, maxGenerations };
     });
   },
 
@@ -46,8 +47,9 @@ export const databaseService = {
     const hasGenerations = parts.length > 1 && /^\d+$/.test(parts[parts.length - 1]);
     const rootId = hasGenerations ? parts.slice(0, -1).join('-') : id;
     const maxGenerations = hasGenerations ? parseInt(parts[parts.length - 1]) : undefined;
+    const rootName = db[rootId]?.name;
 
-    return { id, filename, personCount, rootId, maxGenerations };
+    return { id, filename, personCount, rootId, rootName, maxGenerations };
   },
 
   async getDatabase(id: string): Promise<Database> {
