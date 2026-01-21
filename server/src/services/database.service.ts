@@ -14,17 +14,30 @@ export const databaseService = {
       const match = filename.match(/^db-([^.]+)\.json$/);
       const id = match ? match[1] : filename;
 
-      // Extract root ID and max generations from filename
-      const parts = id.split('-');
-      const hasGenerations = parts.length > 1 && /^\d+$/.test(parts[parts.length - 1]);
-      const rootId = hasGenerations ? parts.slice(0, -1).join('-') : id;
-      const maxGenerations = hasGenerations ? parseInt(parts[parts.length - 1]) : undefined;
-
-      // Get person count and root person name from file
+      // Get database content first to validate rootId
       const filePath = path.join(DATA_DIR, filename);
       const content = fs.readFileSync(filePath, 'utf-8');
       const db: Database = JSON.parse(content);
       const personCount = Object.keys(db).length;
+
+      // Extract root ID and max generations from filename
+      // FamilySearch IDs are like XXXX-XXX (e.g., L5TF-642)
+      // Generation suffix would be: db-L5TF-642-50.json
+      const parts = id.split('-');
+      let rootId = id;
+      let maxGenerations: number | undefined;
+
+      // Only treat last part as generation if:
+      // 1. It's purely numeric
+      // 2. The remaining parts form a valid ID in the database
+      if (parts.length > 2 && /^\d+$/.test(parts[parts.length - 1])) {
+        const possibleRootId = parts.slice(0, -1).join('-');
+        if (db[possibleRootId]) {
+          rootId = possibleRootId;
+          maxGenerations = parseInt(parts[parts.length - 1]);
+        }
+      }
+
       const rootName = db[rootId]?.name;
 
       return { id, filename, personCount, rootId, rootName, maxGenerations };
@@ -43,10 +56,22 @@ export const databaseService = {
     const db: Database = JSON.parse(content);
     const personCount = Object.keys(db).length;
 
+    // Extract root ID and max generations from filename
     const parts = id.split('-');
-    const hasGenerations = parts.length > 1 && /^\d+$/.test(parts[parts.length - 1]);
-    const rootId = hasGenerations ? parts.slice(0, -1).join('-') : id;
-    const maxGenerations = hasGenerations ? parseInt(parts[parts.length - 1]) : undefined;
+    let rootId = id;
+    let maxGenerations: number | undefined;
+
+    // Only treat last part as generation if:
+    // 1. It's purely numeric
+    // 2. The remaining parts form a valid ID in the database
+    if (parts.length > 2 && /^\d+$/.test(parts[parts.length - 1])) {
+      const possibleRootId = parts.slice(0, -1).join('-');
+      if (db[possibleRootId]) {
+        rootId = possibleRootId;
+        maxGenerations = parseInt(parts[parts.length - 1]);
+      }
+    }
+
     const rootName = db[rootId]?.name;
 
     return { id, filename, personCount, rootId, rootName, maxGenerations };
