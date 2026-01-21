@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { useParams, Link } from 'react-router-dom';
+import { useParams, Link, useNavigate } from 'react-router-dom';
 import * as d3 from 'd3';
 import type { TreeNode } from '@fsf/shared';
 import { api } from '../../services/api';
 
 export function TreeView() {
   const { dbId, personId } = useParams<{ dbId: string; personId?: string }>();
+  const navigate = useNavigate();
   const [tree, setTree] = useState<TreeNode | null>(null);
   const [rootId, setRootId] = useState<string | null>(personId || null);
   const [loading, setLoading] = useState(true);
@@ -69,13 +70,23 @@ export function TreeView() {
       .enter()
       .append('g')
       .attr('class', 'node')
-      .attr('transform', d => `translate(${d.y},${d.x})`);
+      .attr('transform', d => `translate(${d.y},${d.x})`)
+      .style('cursor', 'pointer')
+      .on('click', (_event, d) => {
+        navigate(`/person/${dbId}/${d.data.id}`);
+      });
 
     nodes.append('circle')
       .attr('r', 8)
       .attr('fill', d => d.data._collapsed ? '#f59e0b' : '#3b82f6')
       .attr('stroke', '#1a1a1a')
-      .attr('stroke-width', 2);
+      .attr('stroke-width', 2)
+      .on('mouseenter', function() {
+        d3.select(this).attr('r', 10).attr('stroke', '#60a5fa');
+      })
+      .on('mouseleave', function() {
+        d3.select(this).attr('r', 8).attr('stroke', '#1a1a1a');
+      });
 
     // Name label - white for dark theme
     nodes.append('text')
@@ -103,7 +114,7 @@ export function TreeView() {
     svg.call(zoom);
     svg.call(zoom.transform, d3.zoomIdentity.translate(margin.left, height / 2));
 
-  }, [tree]);
+  }, [tree, navigate, dbId]);
 
   if (loading) {
     return <div className="text-center py-8 text-neutral-400">Loading tree...</div>;

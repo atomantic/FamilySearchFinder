@@ -6,6 +6,27 @@ import { databaseService } from './database.service.js';
 
 const DATA_DIR = path.resolve(import.meta.dirname, '../../../data');
 const AUGMENT_DIR = path.join(DATA_DIR, 'augment');
+const PHOTOS_DIR = path.join(DATA_DIR, 'photos');
+
+/**
+ * Get the best available photo URL for a person
+ */
+function getPhotoUrl(personId: string, augmentation?: PersonAugmentation): string | undefined {
+  // Priority 1: Wikipedia photo with local path
+  const wikiPhoto = augmentation?.photos?.find(p => p.source === 'wikipedia');
+  if (wikiPhoto?.localPath && fs.existsSync(wikiPhoto.localPath)) {
+    return `/api/augment/${personId}/wiki-photo`;
+  }
+
+  // Priority 2: Scraped FamilySearch photo
+  const jpgPath = path.join(PHOTOS_DIR, `${personId}.jpg`);
+  const pngPath = path.join(PHOTOS_DIR, `${personId}.png`);
+  if (fs.existsSync(jpgPath) || fs.existsSync(pngPath)) {
+    return `/api/browser/photos/${personId}`;
+  }
+
+  return undefined;
+}
 
 // Preset tags for suggestions
 export const PRESET_TAGS = [
@@ -133,11 +154,8 @@ export const favoritesService = {
           }
         }
 
-        // Get photo URL from augmentation
-        const wikiPhoto = augmentation.photos?.find(p => p.source === 'wikipedia');
-        if (wikiPhoto?.localPath && fs.existsSync(wikiPhoto.localPath)) {
-          photoUrl = `/api/augment/${augmentation.id}/wiki-photo`;
-        }
+        // Get photo URL (wiki or scraped)
+        photoUrl = getPhotoUrl(augmentation.id, augmentation);
 
         allFavorites.push({
           personId: augmentation.id,
@@ -196,17 +214,11 @@ export const favoritesService = {
       if (augmentation.favorite?.isFavorite) {
         const person = db[personId];
 
-        let photoUrl: string | undefined;
-        const wikiPhoto = augmentation.photos?.find(p => p.source === 'wikipedia');
-        if (wikiPhoto?.localPath && fs.existsSync(wikiPhoto.localPath)) {
-          photoUrl = `/api/augment/${personId}/wiki-photo`;
-        }
-
         favorites.push({
           personId,
           name: person.name,
           lifespan: person.lifespan,
-          photoUrl,
+          photoUrl: getPhotoUrl(personId, augmentation),
           favorite: augmentation.favorite,
           databases: [dbId],
         });

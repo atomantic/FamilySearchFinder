@@ -6,6 +6,7 @@ import { favoritesService } from './favorites.service.js';
 
 const DATA_DIR = path.resolve(import.meta.dirname, '../../../data');
 const AUGMENT_DIR = path.join(DATA_DIR, 'augment');
+const PHOTOS_DIR = path.join(DATA_DIR, 'photos');
 
 /**
  * BFS to find shortest path from source to target through children
@@ -59,14 +60,23 @@ function getFavoriteData(personId: string): FavoriteData | null {
  * Get photo URL for a person
  */
 function getPhotoUrl(personId: string): string | undefined {
+  // Check for augmentation file with wiki photo
   const filePath = path.join(AUGMENT_DIR, `${personId}.json`);
-  if (!fs.existsSync(filePath)) return undefined;
-
-  const data: PersonAugmentation = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-  const wikiPhoto = data.photos?.find(p => p.source === 'wikipedia');
-  if (wikiPhoto?.localPath && fs.existsSync(wikiPhoto.localPath)) {
-    return `/api/augment/${personId}/wiki-photo`;
+  if (fs.existsSync(filePath)) {
+    const data: PersonAugmentation = JSON.parse(fs.readFileSync(filePath, 'utf-8'));
+    const wikiPhoto = data.photos?.find(p => p.source === 'wikipedia');
+    if (wikiPhoto?.localPath && fs.existsSync(wikiPhoto.localPath)) {
+      return `/api/augment/${personId}/wiki-photo`;
+    }
   }
+
+  // Check for scraped FamilySearch photo
+  const jpgPath = path.join(PHOTOS_DIR, `${personId}.jpg`);
+  const pngPath = path.join(PHOTOS_DIR, `${personId}.png`);
+  if (fs.existsSync(jpgPath) || fs.existsSync(pngPath)) {
+    return `/api/browser/photos/${personId}`;
+  }
+
   return undefined;
 }
 
