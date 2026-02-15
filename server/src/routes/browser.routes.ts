@@ -15,12 +15,40 @@ router.get('/status', async (_req: Request, res: Response) => {
     return {
       connected: false,
       cdpUrl: browserService.getCdpUrl(),
+      cdpPort: browserService.getCdpPort(),
       pageCount: 0,
       pages: [],
-      familySearchLoggedIn: false
+      familySearchLoggedIn: false,
+      browserProcessRunning: false,
+      autoConnect: browserService.getConfig().autoConnect
     };
   });
   res.json({ success: true, data: status });
+});
+
+// Get browser config
+router.get('/config', (_req: Request, res: Response) => {
+  const config = browserService.getConfig();
+  res.json({ success: true, data: config });
+});
+
+// Update browser config
+router.put('/config', (req: Request, res: Response) => {
+  const updates = req.body;
+  const config = browserService.updateConfig(updates);
+  res.json({ success: true, data: config });
+});
+
+// Launch browser process
+router.post('/launch', async (_req: Request, res: Response) => {
+  const result = await browserService.launchBrowser();
+  res.json({ success: result.success, data: result });
+});
+
+// Check if browser process is running
+router.get('/running', async (_req: Request, res: Response) => {
+  const running = await browserService.checkBrowserRunning();
+  res.json({ success: true, data: { running } });
 });
 
 // Connect to browser
@@ -39,10 +67,7 @@ router.post('/connect', async (req: Request, res: Response) => {
 
   res.json({
     success: true,
-    data: {
-      connected: browser.isConnected(),
-      ...status
-    }
+    data: status
   });
 });
 
@@ -103,7 +128,7 @@ router.get('/scrape/:personId', async (req: Request, res: Response) => {
   res.setHeader('Connection', 'keep-alive');
   res.flushHeaders();
 
-  const sendEvent = (event: string, data: Record<string, unknown>) => {
+  const sendEvent = (event: string, data: unknown) => {
     res.write(`event: ${event}\n`);
     res.write(`data: ${JSON.stringify(data)}\n\n`);
   };
@@ -175,6 +200,36 @@ router.get('/photos/:personId/exists', async (req: Request, res: Response) => {
   const { personId } = req.params;
   const exists = scraperService.hasPhoto(personId);
   res.json({ success: true, data: { exists } });
+});
+
+// Get FamilySearch authentication token from browser session
+router.get('/token', async (_req: Request, res: Response) => {
+  if (!browserService.isConnected()) {
+    res.status(400).json({ success: false, error: 'Browser not connected' });
+    return;
+  }
+
+  const result = await browserService.getFamilySearchToken().catch(err => {
+    console.error('[browser] Token extraction error:', err.message);
+    return { token: null, cookies: [] };
+  });
+
+  if (!result.token) {
+    res.status(404).json({
+      success: false,
+      error: 'No FamilySearch token found. Make sure you are logged in.',
+      cookies: result.cookies.map(c => c.name) // Just return cookie names for debugging
+    });
+    return;
+  }
+
+  res.json({
+    success: true,
+    data: {
+      token: result.token,
+      cookieCount: result.cookies.length
+    }
+  });
 });
 
 export const browserRouter = router;
