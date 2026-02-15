@@ -147,7 +147,7 @@ export function GenealogyProviderEditPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-neutral-400">Loading provider...</div>;
+    return <div className="text-center py-8 text-app-text-muted">Loading provider...</div>;
   }
 
   return (
@@ -156,11 +156,11 @@ export function GenealogyProviderEditPage() {
       <div className="flex items-center gap-4 mb-6">
         <Link
           to="/providers/genealogy"
-          className="p-2 text-neutral-400 hover:text-white hover:bg-app-border rounded transition-colors"
+          className="p-2 text-app-text-muted hover:text-app-text hover:bg-app-border rounded transition-colors"
         >
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold text-white">
+        <h1 className="text-2xl font-bold text-app-text">
           {isNew ? 'Add Genealogy Provider' : 'Edit Genealogy Provider'}
         </h1>
       </div>
@@ -168,19 +168,19 @@ export function GenealogyProviderEditPage() {
       <form onSubmit={handleSubmit} className="space-y-6">
         {/* Basic Info */}
         <div className="bg-app-card rounded-lg border border-app-border p-5">
-          <h2 className="text-lg font-semibold text-white mb-4">Basic Information</h2>
+          <h2 className="text-lg font-semibold text-app-text mb-4">Basic Information</h2>
 
           <div className="space-y-4">
             {/* Platform */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Platform
               </label>
               <select
                 value={platform}
                 onChange={e => handlePlatformChange(e.target.value as PlatformType)}
                 disabled={!isNew}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none disabled:opacity-50"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none disabled:opacity-50"
               >
                 {platforms.map(p => (
                   <option key={p.platform} value={p.platform}>
@@ -189,13 +189,13 @@ export function GenealogyProviderEditPage() {
                 ))}
               </select>
               {!isNew && (
-                <p className="text-xs text-neutral-500 mt-1">Platform cannot be changed after creation</p>
+                <p className="text-xs text-app-text-subtle mt-1">Platform cannot be changed after creation</p>
               )}
             </div>
 
             {/* Name */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Display Name *
               </label>
               <input
@@ -203,7 +203,7 @@ export function GenealogyProviderEditPage() {
                 value={name}
                 onChange={e => setName(e.target.value)}
                 placeholder="My FamilySearch Account"
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none"
                 required
               />
             </div>
@@ -217,7 +217,7 @@ export function GenealogyProviderEditPage() {
                 onChange={e => setEnabled(e.target.checked)}
                 className="w-4 h-4 rounded border-app-border bg-app-bg text-app-accent focus:ring-app-accent"
               />
-              <label htmlFor="enabled" className="text-sm text-neutral-300">
+              <label htmlFor="enabled" className="text-sm text-app-text-secondary">
                 Enabled
               </label>
             </div>
@@ -226,18 +226,18 @@ export function GenealogyProviderEditPage() {
 
         {/* Authentication */}
         <div className="bg-app-card rounded-lg border border-app-border p-5">
-          <h2 className="text-lg font-semibold text-white mb-4">Authentication</h2>
+          <h2 className="text-lg font-semibold text-app-text mb-4">Authentication</h2>
 
           <div className="space-y-4">
             {/* Auth Type */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Auth Type
               </label>
               <select
                 value={authType}
                 onChange={e => setAuthType(e.target.value as GenealogyAuthType)}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               >
                 <option value="none">None (Public API)</option>
                 <option value="session_token">Session Token</option>
@@ -249,7 +249,7 @@ export function GenealogyProviderEditPage() {
             {/* Session Token / Access Token */}
             {(authType === 'session_token' || authType === 'oauth2') && (
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-app-text-secondary mb-1">
                   Access Token
                 </label>
                 <input
@@ -257,10 +257,10 @@ export function GenealogyProviderEditPage() {
                   value={accessToken}
                   onChange={e => setAccessToken(e.target.value)}
                   placeholder="Enter access token..."
-                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none font-mono text-sm"
+                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none font-mono text-sm"
                 />
                 {authType === 'session_token' && (
-                  <p className="text-xs text-neutral-500 mt-1">
+                  <p className="text-xs text-app-text-subtle mt-1">
                     Get this from browser dev tools when logged into the provider website
                   </p>
                 )}
@@ -270,7 +270,7 @@ export function GenealogyProviderEditPage() {
             {/* API Key */}
             {authType === 'api_key' && (
               <div>
-                <label className="block text-sm font-medium text-neutral-300 mb-1">
+                <label className="block text-sm font-medium text-app-text-secondary mb-1">
                   API Key
                 </label>
                 <input
@@ -278,7 +278,7 @@ export function GenealogyProviderEditPage() {
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
                   placeholder="Enter API key..."
-                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none font-mono text-sm"
+                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none font-mono text-sm"
                 />
               </div>
             )}
@@ -287,7 +287,7 @@ export function GenealogyProviderEditPage() {
             {authType === 'oauth2' && (
               <>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-app-text-secondary mb-1">
                     Client ID (optional)
                   </label>
                   <input
@@ -295,11 +295,11 @@ export function GenealogyProviderEditPage() {
                     value={clientId}
                     onChange={e => setClientId(e.target.value)}
                     placeholder="OAuth client ID..."
-                    className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none font-mono text-sm"
+                    className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none font-mono text-sm"
                   />
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-neutral-300 mb-1">
+                  <label className="block text-sm font-medium text-app-text-secondary mb-1">
                     Client Secret (optional)
                   </label>
                   <input
@@ -307,7 +307,7 @@ export function GenealogyProviderEditPage() {
                     value={clientSecret}
                     onChange={e => setClientSecret(e.target.value)}
                     placeholder="OAuth client secret..."
-                    className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none font-mono text-sm"
+                    className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none font-mono text-sm"
                   />
                 </div>
               </>
@@ -317,12 +317,12 @@ export function GenealogyProviderEditPage() {
 
         {/* API Settings */}
         <div className="bg-app-card rounded-lg border border-app-border p-5">
-          <h2 className="text-lg font-semibold text-white mb-4">API Settings</h2>
+          <h2 className="text-lg font-semibold text-app-text mb-4">API Settings</h2>
 
           <div className="space-y-4">
             {/* Base URL */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Base URL
               </label>
               <input
@@ -330,13 +330,13 @@ export function GenealogyProviderEditPage() {
                 value={baseUrl}
                 onChange={e => setBaseUrl(e.target.value)}
                 placeholder="https://api.example.com"
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none font-mono text-sm"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none font-mono text-sm"
               />
             </div>
 
             {/* Timeout */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Timeout (ms)
               </label>
               <input
@@ -345,7 +345,7 @@ export function GenealogyProviderEditPage() {
                 onChange={e => setTimeout(parseInt(e.target.value) || 10000)}
                 min={1000}
                 max={60000}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               />
             </div>
           </div>
@@ -353,11 +353,11 @@ export function GenealogyProviderEditPage() {
 
         {/* Rate Limiting */}
         <div className="bg-app-card rounded-lg border border-app-border p-5">
-          <h2 className="text-lg font-semibold text-white mb-4">Rate Limiting</h2>
+          <h2 className="text-lg font-semibold text-app-text mb-4">Rate Limiting</h2>
 
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Requests per Window
               </label>
               <input
@@ -365,11 +365,11 @@ export function GenealogyProviderEditPage() {
                 value={requestsPerWindow}
                 onChange={e => setRequestsPerWindow(parseInt(e.target.value) || 60)}
                 min={1}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Window (seconds)
               </label>
               <input
@@ -377,11 +377,11 @@ export function GenealogyProviderEditPage() {
                 value={windowSeconds}
                 onChange={e => setWindowSeconds(parseInt(e.target.value) || 60)}
                 min={1}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Min Delay (ms)
               </label>
               <input
@@ -389,11 +389,11 @@ export function GenealogyProviderEditPage() {
                 value={minDelayMs}
                 onChange={e => setMinDelayMs(parseInt(e.target.value) || 500)}
                 min={0}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-app-text-secondary mb-1">
                 Max Delay (ms)
               </label>
               <input
@@ -401,11 +401,11 @@ export function GenealogyProviderEditPage() {
                 value={maxDelayMs}
                 onChange={e => setMaxDelayMs(parseInt(e.target.value) || 1500)}
                 min={0}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none"
               />
             </div>
           </div>
-          <p className="text-xs text-neutral-500 mt-2">
+          <p className="text-xs text-app-text-subtle mt-2">
             Random delay between min and max will be added between API requests
           </p>
         </div>
@@ -414,14 +414,14 @@ export function GenealogyProviderEditPage() {
         <div className="flex gap-3 justify-end">
           <Link
             to="/providers/genealogy"
-            className="px-4 py-2 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
+            className="px-4 py-2 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors"
           >
             Cancel
           </Link>
           <button
             type="submit"
             disabled={saving}
-            className="px-4 py-2 bg-app-accent text-white rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-app-accent text-app-text rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {saving ? (
               <>

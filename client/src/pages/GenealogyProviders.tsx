@@ -27,30 +27,30 @@ function DeleteConfirmModal({ provider, onConfirm, onCancel, isDeleting }: Delet
   if (!provider) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-app-overlay flex items-center justify-center z-50">
       <div className="bg-app-card border border-app-border rounded-lg p-6 max-w-md w-full mx-4">
-        <h2 className="text-xl font-bold text-white mb-4">Delete Provider?</h2>
-        <p className="text-neutral-400 mb-2">
+        <h2 className="text-xl font-bold text-app-text mb-4">Delete Provider?</h2>
+        <p className="text-app-text-muted mb-2">
           Are you sure you want to delete the provider:
         </p>
-        <p className="text-white font-semibold mb-4">
+        <p className="text-app-text font-semibold mb-4">
           {provider.name}
         </p>
-        <p className="text-neutral-500 text-sm mb-6">
+        <p className="text-app-text-subtle text-sm mb-6">
           This will remove the provider configuration. Person links using this provider will remain but may become orphaned.
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
             disabled={isDeleting}
-            className="px-4 py-2 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={onConfirm}
             disabled={isDeleting}
-            className="px-4 py-2 bg-red-600 text-white rounded hover:bg-red-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-4 py-2 bg-red-600 text-app-text rounded hover:bg-red-500 transition-colors disabled:opacity-50 flex items-center gap-2"
           >
             {isDeleting ? (
               <>
@@ -154,12 +154,12 @@ export function GenealogyProvidersPage() {
       case 'error':
         return <XCircle size={16} className="text-red-400" />;
       default:
-        return <AlertCircle size={16} className="text-neutral-500" />;
+        return <AlertCircle size={16} className="text-app-text-subtle" />;
     }
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-neutral-400">Loading providers...</div>;
+    return <div className="text-center py-8 text-app-text-muted">Loading providers...</div>;
   }
 
   if (error) {
@@ -173,11 +173,11 @@ export function GenealogyProvidersPage() {
       <div className="flex items-center justify-between mb-6">
         <div className="flex items-center gap-3">
           <Database size={24} className="text-app-accent" />
-          <h1 className="text-2xl font-bold text-white">Genealogy Providers</h1>
+          <h1 className="text-2xl font-bold text-app-text">Genealogy Providers</h1>
         </div>
         <Link
           to="/providers/genealogy/new"
-          className="flex items-center gap-2 px-4 py-2 bg-app-accent text-white rounded-lg hover:bg-app-accent/80 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-app-accent text-app-text rounded-lg hover:bg-app-accent/80 transition-colors"
         >
           <Plus size={18} />
           Add Provider
@@ -186,11 +186,11 @@ export function GenealogyProvidersPage() {
 
       {providers.length === 0 ? (
         <div className="text-center py-12 bg-app-card rounded-lg border border-app-border">
-          <Database size={48} className="mx-auto text-neutral-600 mb-4" />
-          <p className="text-neutral-400 mb-4">No genealogy providers configured.</p>
+          <Database size={48} className="mx-auto text-app-text-subtle mb-4" />
+          <p className="text-app-text-muted mb-4">No genealogy providers configured.</p>
           <Link
             to="/providers/genealogy/new"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-app-accent text-white rounded-lg hover:bg-app-accent/80 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-app-accent text-app-text rounded-lg hover:bg-app-accent/80 transition-colors"
           >
             <Plus size={18} />
             Add Your First Provider
@@ -199,7 +199,7 @@ export function GenealogyProvidersPage() {
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {providers.map(provider => {
-            const colors = platformColors[provider.platform] || { bg: 'bg-neutral-600/20', text: 'text-neutral-400' };
+            const colors = platformColors[provider.platform] || { bg: 'bg-app-text-subtle/20', text: 'text-app-text-muted' };
             const isActive = registry?.activeProvider === provider.id;
             const isTesting = testingId === provider.id;
             const isActivating = activatingId === provider.id;
@@ -208,7 +208,7 @@ export function GenealogyProvidersPage() {
               <div
                 key={provider.id}
                 className={`bg-app-card rounded-lg border p-4 transition-colors ${
-                  isActive ? 'border-app-accent' : 'border-app-border hover:border-neutral-600'
+                  isActive ? 'border-app-accent' : 'border-app-border hover:border-app-border'
                 }`}
               >
                 {/* Header */}
@@ -229,10 +229,10 @@ export function GenealogyProvidersPage() {
                 </div>
 
                 {/* Name */}
-                <h2 className="font-semibold text-lg text-white mb-1">{provider.name}</h2>
+                <h2 className="font-semibold text-lg text-app-text mb-1">{provider.name}</h2>
 
                 {/* Details */}
-                <div className="text-sm text-neutral-500 mb-4 space-y-1">
+                <div className="text-sm text-app-text-subtle mb-4 space-y-1">
                   <p>Auth: {provider.authType}</p>
                   {provider.lastConnected && (
                     <p>Last connected: {new Date(provider.lastConnected).toLocaleDateString()}</p>
@@ -247,7 +247,7 @@ export function GenealogyProvidersPage() {
                   <button
                     onClick={() => handleTest(provider)}
                     disabled={isTesting}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors disabled:opacity-50 text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors disabled:opacity-50 text-sm"
                   >
                     {isTesting ? (
                       <>
@@ -267,7 +267,7 @@ export function GenealogyProvidersPage() {
                     className={`flex items-center gap-1 px-3 py-1.5 rounded transition-colors disabled:opacity-50 text-sm ${
                       isActive
                         ? 'bg-app-accent/20 text-app-accent hover:bg-app-accent/30'
-                        : 'bg-app-border text-neutral-300 hover:bg-neutral-700'
+                        : 'bg-app-border text-app-text-secondary hover:bg-app-hover'
                     }`}
                   >
                     {isActivating ? (
@@ -284,7 +284,7 @@ export function GenealogyProvidersPage() {
                   </button>
                   <Link
                     to={`/providers/genealogy/${provider.id}/edit`}
-                    className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors text-sm"
+                    className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors text-sm"
                   >
                     <Settings size={14} />
                     Edit
