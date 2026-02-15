@@ -5,8 +5,11 @@ import { databaseService } from './database.service.js';
 // These are ES modules, we need to use dynamic import
 const loadPathAlgorithms = async () => {
   const [shortest, longest, random] = await Promise.all([
+    // @ts-expect-error - Legacy JS module without type declarations
     import('../../../lib/pathShortest.js'),
+    // @ts-expect-error - Legacy JS module without type declarations
     import('../../../lib/pathLongest.js'),
+    // @ts-expect-error - Legacy JS module without type declarations
     import('../../../lib/pathRandom.js')
   ]);
   return {

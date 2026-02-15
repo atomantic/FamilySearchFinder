@@ -102,6 +102,10 @@ function buildFamilyUnit(
       );
       if (fathersParentUnit) {
         parentUnits.push(fathersParentUnit);
+        // Mark father as NOT having more ancestors since we just loaded them
+        if (unit.father) {
+          unit.father.hasMoreAncestors = false;
+        }
       }
     }
 
@@ -117,14 +121,20 @@ function buildFamilyUnit(
       );
       if (mothersParentUnit) {
         parentUnits.push(mothersParentUnit);
+        // Mark mother as NOT having more ancestors since we just loaded them
+        if (unit.mother) {
+          unit.mother.hasMoreAncestors = false;
+        }
       }
     }
 
     if (parentUnits.length > 0) {
       unit.parentUnits = parentUnits;
     }
-  } else {
-    // At max depth, mark cards as having more ancestors if they do
+  }
+
+  // At max depth OR when no parentUnits were created, check if more ancestors exist
+  if (!unit.parentUnits || unit.parentUnits.length === 0) {
     if (unit.father && father?.parents?.some(pid => db[pid])) {
       unit.father.hasMoreAncestors = true;
     }
@@ -160,12 +170,14 @@ export const ancestryTreeService = {
       maxGenerationLoaded: 0
     };
 
-    // Get root person's spouse if available
+    // Get root person's spouse if available (exclude self-references)
     if (rootPerson.spouses && rootPerson.spouses.length > 0) {
-      const spouseId = rootPerson.spouses[0];
-      const spouse = db[spouseId];
-      if (spouse) {
-        result.rootSpouse = buildPersonCard(spouseId, spouse, db);
+      const spouseId = rootPerson.spouses.find(id => id !== personId);
+      if (spouseId) {
+        const spouse = db[spouseId];
+        if (spouse) {
+          result.rootSpouse = buildPersonCard(spouseId, spouse, db);
+        }
       }
     }
 
@@ -200,8 +212,10 @@ export const ancestryTreeService = {
   },
 
   /**
-   * Expand ancestry for specific parents (load their parents)
-   * Used for lazy loading when user clicks expand button
+   * Expand ancestry for a specific person (load their parents)
+   * Used for lazy loading when user clicks expand button on a person card
+   * @param fatherId The person ID to expand (despite the name, this is the person to expand from)
+   * @param motherId Alternative person ID to expand (used for mother's lineage)
    */
   async expandAncestry(
     dbId: string,
@@ -211,7 +225,18 @@ export const ancestryTreeService = {
   ): Promise<AncestryFamilyUnit | null> {
     const db = await databaseService.getDatabase(dbId);
 
-    const unit = buildFamilyUnit(fatherId, motherId, db, 1, depth);
+    // Get the person we're expanding from (the one whose parents we want to show)
+    const personId = fatherId || motherId;
+    if (!personId) return null;
+
+    const person = db[personId];
+    if (!person || !person.parents || person.parents.length === 0) {
+      return null;
+    }
+
+    // Build a family unit from this person's parents
+    const [personsFatherId, personsMotherId] = person.parents;
+    const unit = buildFamilyUnit(personsFatherId, personsMotherId, db, 1, depth);
     return unit || null;
   }
 };

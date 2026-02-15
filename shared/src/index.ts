@@ -39,12 +39,15 @@ export interface Person {
 }
 
 // Platform reference for cross-platform linking
-export type PlatformType = 'familysearch' | 'wikipedia' | 'findagrave' | 'heritage' | 'ancestry' | 'geni' | 'wikitree' | 'myheritage' | 'findmypast';
+export type PlatformType = 'familysearch' | 'wikipedia' | 'findagrave' | 'heritage' | 'ancestry' | 'geni' | 'wikitree' | 'myheritage' | 'findmypast' | '23andme';
 
-// Genealogy provider authentication types
+// Built-in provider types (browser-based scrapers)
+export type BuiltInProvider = 'familysearch' | 'ancestry' | '23andme' | 'wikitree';
+
+// Legacy: Genealogy provider authentication types (kept for backward compatibility)
 export type GenealogyAuthType = 'oauth2' | 'api_key' | 'session_token' | 'none';
 
-// Configuration for a genealogy data provider
+// Legacy: Configuration for a genealogy data provider (kept for backward compatibility)
 export interface GenealogyProviderConfig {
   id: string;
   name: string;
@@ -69,10 +72,123 @@ export interface GenealogyProviderConfig {
   connectionStatus?: 'connected' | 'disconnected' | 'error';
 }
 
-// Registry of all configured genealogy providers
+// Legacy: Registry of all configured genealogy providers (kept for backward compatibility)
 export interface GenealogyProviderRegistry {
   activeProvider: string | null;
   providers: Record<string, GenealogyProviderConfig>;
+}
+
+// Provider session status (checked via browser)
+export interface ProviderSessionStatus {
+  provider: BuiltInProvider;
+  enabled: boolean;
+  loggedIn: boolean;
+  lastChecked?: string;
+  userName?: string;
+}
+
+// Tree information from a provider
+export interface ProviderTreeInfo {
+  provider: BuiltInProvider;
+  treeId: string;
+  treeName: string;
+  personCount?: number;
+  rootPersonId?: string;
+}
+
+// User configuration for a provider
+export interface UserProviderConfig {
+  provider: BuiltInProvider;
+  enabled: boolean;
+  defaultTreeId?: string;
+  rateLimit: {
+    minDelayMs: number;
+    maxDelayMs: number;
+  };
+  // Browser scrape options
+  browserScrapeEnabled: boolean;  // Whether browser scraping is enabled for this provider
+  browserLoggedIn: boolean;       // User has confirmed they've logged into browser for this provider
+  browserLastLogin?: string;      // Last time user confirmed browser login (ISO date)
+}
+
+// Registry of all provider configurations
+export interface ProviderRegistry {
+  providers: Record<BuiltInProvider, UserProviderConfig>;
+  lastUpdated: string;
+}
+
+// Scraped person data from any provider
+export interface ScrapedPersonData {
+  externalId: string;
+  provider: BuiltInProvider;
+  name: string;
+  gender?: 'male' | 'female' | 'unknown';
+  birth?: { date?: string; place?: string };
+  death?: { date?: string; place?: string };
+  fatherExternalId?: string;
+  motherExternalId?: string;
+  spouseExternalIds?: string[];
+  photoUrl?: string;
+  sourceUrl: string;
+  scrapedAt: string;
+}
+
+// GEDCOM Types
+export interface GedcomPerson {
+  id: string;
+  name: string;
+  givenName?: string;
+  surname?: string;
+  gender?: 'M' | 'F' | 'U';
+  birth?: { date?: string; place?: string };
+  death?: { date?: string; place?: string };
+  burial?: { date?: string; place?: string };
+  familyChildIds?: string[];  // FAM IDs where this person is a child
+  familySpouseIds?: string[]; // FAM IDs where this person is a spouse
+  notes?: string;
+}
+
+export interface GedcomFamily {
+  id: string;
+  husbandId?: string;
+  wifeId?: string;
+  childIds?: string[];
+  marriageDate?: string;
+  marriagePlace?: string;
+}
+
+export interface GedcomFile {
+  header: {
+    source?: string;
+    version?: string;
+    charset?: string;
+    submitter?: string;
+  };
+  individuals: Record<string, GedcomPerson>;
+  families: Record<string, GedcomFamily>;
+}
+
+// Sync types
+export interface ProviderComparison {
+  personId: string;
+  localPerson: Person;
+  providerData: Record<BuiltInProvider, ScrapedPersonData | null>;
+  differences: Array<{
+    field: string;
+    localValue?: string;
+    providerValues: Record<BuiltInProvider, string | undefined>;
+  }>;
+}
+
+export interface SyncProgress {
+  phase: 'initializing' | 'comparing' | 'importing' | 'exporting' | 'complete' | 'error';
+  currentIndex: number;
+  totalCount: number;
+  currentPerson?: string;
+  imported: number;
+  exported: number;
+  skipped: number;
+  errors: string[];
 }
 
 // Mapping a person to an external provider record
@@ -268,6 +384,8 @@ export interface SparseTreeNode {
   id: string;
   name: string;
   lifespan: string;
+  gender?: 'male' | 'female' | 'unknown';
+  side?: 'paternal' | 'maternal';  // Which side of the family (from root's perspective)
   photoUrl?: string;
   whyInteresting?: string;
   tags?: string[];

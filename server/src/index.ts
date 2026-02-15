@@ -12,6 +12,9 @@ import { exportRoutes } from './routes/export.routes.js';
 import { browserRouter } from './routes/browser.routes.js';
 import { augmentationRouter } from './routes/augmentation.routes.js';
 import { genealogyProviderRouter } from './routes/genealogy-provider.routes.js';
+import { providerRouter } from './routes/provider.routes.js';
+import { gedcomRouter } from './routes/gedcom.routes.js';
+import { syncRouter } from './routes/sync.routes.js';
 import { favoritesRouter } from './routes/favorites.routes.js';
 import { ancestryTreeRouter } from './routes/ancestry-tree.routes.js';
 import { errorHandler } from './middleware/errorHandler.js';
@@ -23,7 +26,7 @@ const io = new Server(httpServer, {
   cors: { origin: '*' }
 });
 
-const PORT = process.env.PORT || 6374;
+const PORT = parseInt(process.env.PORT || '6374', 10);
 
 // Middleware
 app.use(cors({ origin: '*' }));
@@ -47,6 +50,9 @@ app.use('/api/export', exportRoutes);
 app.use('/api/browser', browserRouter);
 app.use('/api/augment', augmentationRouter);
 app.use('/api/genealogy-providers', genealogyProviderRouter);
+app.use('/api/scrape-providers', providerRouter);
+app.use('/api/gedcom', gedcomRouter);
+app.use('/api/sync', syncRouter);
 app.use('/api/favorites', favoritesRouter);
 app.use('/api/ancestry-tree', ancestryTreeRouter);
 

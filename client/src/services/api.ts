@@ -19,7 +19,12 @@ import type {
   SparseTreeResult,
   AncestryTreeResult,
   AncestryFamilyUnit,
-  ExpandAncestryRequest
+  ExpandAncestryRequest,
+  BuiltInProvider,
+  ProviderSessionStatus,
+  UserProviderConfig,
+  ProviderComparison,
+  ScrapedPersonData
 } from '@fsf/shared';
 
 const BASE_URL = '/api';
@@ -97,6 +102,20 @@ export const api = {
   // Browser automation
   getBrowserStatus: () => fetchJson<BrowserStatus>('/browser/status'),
 
+  getBrowserConfig: () => fetchJson<BrowserConfig>('/browser/config'),
+
+  updateBrowserConfig: (config: Partial<BrowserConfig>) =>
+    fetchJson<BrowserConfig>('/browser/config', {
+      method: 'PUT',
+      body: JSON.stringify(config)
+    }),
+
+  launchBrowser: () =>
+    fetchJson<{ success: boolean; message: string }>('/browser/launch', { method: 'POST' }),
+
+  checkBrowserRunning: () =>
+    fetchJson<{ running: boolean }>('/browser/running'),
+
   connectBrowser: (cdpUrl?: string) =>
     fetchJson<BrowserStatus>('/browser/connect', {
       method: 'POST',
@@ -112,10 +131,10 @@ export const api = {
     }),
 
   scrapePerson: (personId: string) =>
-    fetchJson<ScrapedPersonData>(`/browser/scrape/${personId}`, { method: 'POST' }),
+    fetchJson<LegacyScrapedPersonData>(`/browser/scrape/${personId}`, { method: 'POST' }),
 
   getScrapedData: (personId: string) =>
-    fetchJson<ScrapedPersonData>(`/browser/scraped/${personId}`),
+    fetchJson<LegacyScrapedPersonData>(`/browser/scraped/${personId}`),
 
   hasPhoto: (personId: string) =>
     fetchJson<{ exists: boolean }>(`/browser/photos/${personId}/exists`),
@@ -247,6 +266,138 @@ export const api = {
     fetchJson<AncestryFamilyUnit>(`/ancestry-tree/${dbId}/expand?depth=${depth}`, {
       method: 'POST',
       body: JSON.stringify(request)
+    }),
+
+  // Built-in Providers (browser-based)
+  listProviders: () =>
+    fetchJson<{
+      providers: Array<{
+        provider: BuiltInProvider;
+        displayName: string;
+        loginUrl: string;
+        treeUrlPattern: string;
+        supportsMultipleTrees: boolean;
+        rateLimitDefaults: { minDelayMs: number; maxDelayMs: number };
+        config: UserProviderConfig;
+      }>;
+      registry: { providers: Record<BuiltInProvider, UserProviderConfig>; lastUpdated: string };
+      browserConnected: boolean;
+    }>('/scrape-providers'),
+
+  getProvider: (provider: BuiltInProvider) =>
+    fetchJson<{ config: UserProviderConfig; info: unknown }>(`/providers/${provider}`),
+
+  updateProvider: (provider: BuiltInProvider, updates: Partial<UserProviderConfig>) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}`, {
+      method: 'PUT',
+      body: JSON.stringify(updates)
+    }),
+
+  toggleProvider: (provider: BuiltInProvider, enabled: boolean) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}/toggle`, {
+      method: 'POST',
+      body: JSON.stringify({ enabled })
+    }),
+
+  toggleBrowserScrape: (provider: BuiltInProvider, enabled: boolean) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}/toggle-browser-scrape`, {
+      method: 'POST',
+      body: JSON.stringify({ enabled })
+    }),
+
+  confirmBrowserLogin: (provider: BuiltInProvider, loggedIn: boolean) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}/confirm-browser-login`, {
+      method: 'POST',
+      body: JSON.stringify({ loggedIn })
+    }),
+
+  checkProviderSession: (provider: BuiltInProvider) =>
+    fetchJson<ProviderSessionStatus>(`/providers/${provider}/check-session`, {
+      method: 'POST'
+    }),
+
+  checkAllProviderSessions: () =>
+    fetchJson<Record<BuiltInProvider, ProviderSessionStatus>>('/scrape-providers/check-all-sessions', {
+      method: 'POST'
+    }),
+
+  openProviderLogin: (provider: BuiltInProvider) =>
+    fetchJson<{ url: string }>(`/providers/${provider}/login`, {
+      method: 'POST'
+    }),
+
+  listProviderTrees: (provider: BuiltInProvider) =>
+    fetchJson<Array<{ provider: BuiltInProvider; treeId: string; treeName: string }>>(`/providers/${provider}/trees`),
+
+  setProviderDefaultTree: (provider: BuiltInProvider, treeId?: string) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}/default-tree`, {
+      method: 'POST',
+      body: JSON.stringify({ treeId })
+    }),
+
+  updateProviderRateLimits: (provider: BuiltInProvider, minDelayMs: number, maxDelayMs: number) =>
+    fetchJson<UserProviderConfig>(`/providers/${provider}/rate-limit`, {
+      method: 'PUT',
+      body: JSON.stringify({ minDelayMs, maxDelayMs })
+    }),
+
+  scrapeFromProvider: (provider: BuiltInProvider, personId: string) =>
+    fetchJson<ScrapedPersonData>(`/providers/${provider}/scrape/${personId}`, {
+      method: 'POST'
+    }),
+
+  // GEDCOM Import/Export
+  getGedcomExportUrl: (dbId: string) => `${BASE_URL}/gedcom/export/${dbId}`,
+
+  importGedcom: (content: string, dbName: string) =>
+    fetchJson<{ dbId: string; personCount: number }>('/gedcom/import', {
+      method: 'POST',
+      body: JSON.stringify({ content, dbName })
+    }),
+
+  validateGedcom: (content: string) =>
+    fetchJson<{ valid: boolean; errors: string[] }>('/gedcom/validate', {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    }),
+
+  previewGedcom: (content: string) =>
+    fetchJson<{
+      header: { source?: string; version?: string };
+      individualCount: number;
+      familyCount: number;
+      sampleIndividuals: Array<{ id: string; name: string; birthDate?: string; deathDate?: string }>;
+    }>('/gedcom/preview', {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    }),
+
+  // Sync
+  compareAcrossProviders: (dbId: string, personId: string) =>
+    fetchJson<ProviderComparison>(`/sync/${dbId}/${personId}/compare`),
+
+  importPersonFromProvider: (dbId: string, personId: string, provider: BuiltInProvider, externalId?: string) =>
+    fetchJson<unknown>(`/sync/${dbId}/${personId}/import`, {
+      method: 'POST',
+      body: JSON.stringify({ provider, externalId })
+    }),
+
+  pushToProvider: (dbId: string, personId: string, provider: BuiltInProvider) =>
+    fetchJson<{ editUrl: string }>(`/sync/${dbId}/${personId}/push`, {
+      method: 'POST',
+      body: JSON.stringify({ provider })
+    }),
+
+  findMatchOnProvider: (dbId: string, personId: string, provider: BuiltInProvider) =>
+    fetchJson<ScrapedPersonData | null>(`/sync/${dbId}/${personId}/find-match`, {
+      method: 'POST',
+      body: JSON.stringify({ provider })
+    }),
+
+  startDatabaseSync: (dbId: string, provider: BuiltInProvider, direction: 'import' | 'export' | 'both' = 'import') =>
+    fetchJson<{ message: string; progressUrl: string }>(`/sync/database/${dbId}`, {
+      method: 'POST',
+      body: JSON.stringify({ provider, direction })
     })
 };
 
@@ -254,12 +405,21 @@ export const api = {
 export interface BrowserStatus {
   connected: boolean;
   cdpUrl: string;
+  cdpPort: number;
   pageCount: number;
   pages: Array<{ url: string; title: string }>;
   familySearchLoggedIn: boolean;
+  browserProcessRunning: boolean;
+  autoConnect: boolean;
 }
 
-export interface ScrapedPersonData {
+export interface BrowserConfig {
+  cdpPort: number;
+  autoConnect: boolean;
+}
+
+// Legacy scraped data format (from browser scraper.service.ts)
+export interface LegacyScrapedPersonData {
   id: string;
   photoUrl?: string;
   photoPath?: string;
@@ -290,5 +450,11 @@ export type {
   AncestryTreeResult,
   AncestryFamilyUnit,
   AncestryPersonCard,
-  ExpandAncestryRequest
+  ExpandAncestryRequest,
+  BuiltInProvider,
+  ProviderSessionStatus,
+  UserProviderConfig,
+  ProviderComparison,
+  ScrapedPersonData,
+  SyncProgress
 } from '@fsf/shared';

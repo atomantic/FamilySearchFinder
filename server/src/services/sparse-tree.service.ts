@@ -9,37 +9,38 @@ const AUGMENT_DIR = path.join(DATA_DIR, 'augment');
 const PHOTOS_DIR = path.join(DATA_DIR, 'photos');
 
 /**
- * BFS to find shortest path from source to target through children
+ * BFS to find shortest path from source to target through parents (ancestry)
  */
 function findShortestPath(db: Database, source: string, target: string): string[] {
   const queue = [source];
   const visited: Record<string, boolean> = { [source]: true };
-  const parents: Record<string, string> = {};
+  const cameFrom: Record<string, string> = {};
 
   while (queue.length > 0) {
     const id = queue.shift()!;
     const person = db[id];
     if (!person) continue;
 
-    const children = person.children || [];
-    for (const child of children) {
-      if (visited[child]) continue;
-      visited[child] = true;
+    // Traverse through parents (going UP the ancestry tree)
+    const parentIds = person.parents || [];
+    for (const parentId of parentIds) {
+      if (!parentId || visited[parentId]) continue;
+      visited[parentId] = true;
 
-      if (child === target) {
-        const pathArr = [child];
+      if (parentId === target) {
+        const pathArr = [parentId];
         let current = id;
         while (current !== source) {
           pathArr.push(current);
-          current = parents[current];
+          current = cameFrom[current];
         }
         pathArr.push(source);
         pathArr.reverse();
         return pathArr;
       }
 
-      parents[child] = id;
-      queue.push(child);
+      cameFrom[parentId] = id;
+      queue.push(parentId);
     }
   }
 
@@ -101,6 +102,7 @@ export const sparseTreeService = {
           id: rootId,
           name: rootPerson?.name || rootId,
           lifespan: rootPerson?.lifespan || '',
+          gender: rootPerson?.gender,
           photoUrl: getPhotoUrl(rootId),
           whyInteresting: rootFavorite?.whyInteresting,
           tags: rootFavorite?.tags,
@@ -130,8 +132,15 @@ export const sparseTreeService = {
     interface TreeBuildNode {
       id: string;
       generation: number;
+      side?: 'paternal' | 'maternal';
       children: Map<string, TreeBuildNode>;
     }
+
+    // Determine which side (paternal/maternal) a path belongs to
+    // based on whether pathArr[1] matches parents[0] (father) or parents[1] (mother)
+    const rootPerson = db[rootId];
+    const fatherId = rootPerson?.parents?.[0];
+    const motherId = rootPerson?.parents?.[1];
 
     // Create intermediate tree structure with all path nodes
     const rootNode: TreeBuildNode = {
@@ -140,15 +149,59 @@ export const sparseTreeService = {
       children: new Map(),
     };
 
-    // Add all paths to tree
-    for (const [, pathArr] of paths) {
+    // Helper to determine if a person is on paternal or maternal side
+    // by checking if their ancestry chain includes the father or mother
+    const determineSide = (personId: string): 'paternal' | 'maternal' | undefined => {
+      if (!fatherId && !motherId) return undefined;
+
+      // Walk up through parents until we find the root's father or mother
+      const visited = new Set<string>();
+      const queue = [personId];
+
+      while (queue.length > 0) {
+        const id = queue.shift()!;
+        if (visited.has(id)) continue;
+        visited.add(id);
+
+        if (id === fatherId) return 'paternal';
+        if (id === motherId) return 'maternal';
+
+        const person = db[id];
+        if (person?.parents) {
+          for (const parentId of person.parents) {
+            if (parentId && !visited.has(parentId)) {
+              queue.push(parentId);
+            }
+          }
+        }
+      }
+
+      return undefined;
+    };
+
+    // Add all paths to tree, tracking paternal/maternal side
+    for (const [favId, pathArr] of paths) {
       let current = rootNode;
+      // Determine side - check if any node in the path leads to father or mother
+      let side: 'paternal' | 'maternal' | undefined;
+      if (pathArr.length > 1) {
+        // Check if path contains father or mother ID directly
+        if (fatherId && pathArr.includes(fatherId)) {
+          side = 'paternal';
+        } else if (motherId && pathArr.includes(motherId)) {
+          side = 'maternal';
+        } else {
+          // Path doesn't directly contain parents, try to trace from first ancestor
+          side = determineSide(pathArr[1]);
+        }
+      }
       for (let i = 1; i < pathArr.length; i++) {
         const nodeId = pathArr[i];
         if (!current.children.has(nodeId)) {
           current.children.set(nodeId, {
             id: nodeId,
             generation: i,
+            side,
             children: new Map(),
           });
         }
@@ -184,6 +237,8 @@ export const sparseTreeService = {
           id: node.id,
           name: person?.name || node.id,
           lifespan: person?.lifespan || '',
+          gender: person?.gender,
+          side: node.side,
           photoUrl: getPhotoUrl(node.id),
           whyInteresting: favorite?.whyInteresting,
           tags: favorite?.tags,
@@ -205,6 +260,8 @@ export const sparseTreeService = {
           id: node.id,
           name: person?.name || node.id,
           lifespan: person?.lifespan || '',
+          gender: person?.gender,
+          side: node.side,
           photoUrl: getPhotoUrl(node.id),
           generationFromRoot: node.generation,
           generationsSkipped: node.generation - lastVisibleGeneration - 1 > 0
@@ -235,6 +292,7 @@ export const sparseTreeService = {
         id: rootId,
         name: db[rootId]?.name || rootId,
         lifespan: db[rootId]?.lifespan || '',
+        gender: db[rootId]?.gender,
         generationFromRoot: 0,
         isFavorite: favoriteIds.has(rootId),
       },
