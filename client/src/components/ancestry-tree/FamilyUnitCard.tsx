@@ -19,7 +19,7 @@ export function FamilyUnitCard({
   loadingMother
 }: FamilyUnitCardProps) {
   return (
-    <div className="flex flex-col gap-2 p-2 rounded-lg border border-app-border/50 bg-app-card/30">
+    <div className="flex flex-col gap-1">
       {/* Father card (top) */}
       {unit.father && (
         <PersonCard
@@ -42,7 +42,7 @@ export function FamilyUnitCard({
 
       {/* Handle case where only one parent exists */}
       {!unit.father && !unit.mother && (
-        <div className="p-3 text-neutral-500 text-sm text-center">
+        <div className="p-3 text-app-text-subtle text-sm text-center">
           Unknown parents
         </div>
       )}

@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { MapPin, Briefcase, Users, ExternalLink, GitBranch, Loader2, Camera, User, Link2, BookOpen, Calendar, Heart, Database, Unlink } from 'lucide-react';
 import toast from 'react-hot-toast';
 import type { PersonWithId, PathResult, DatabaseInfo, PersonAugmentation, GenealogyProviderRegistry, ProviderPersonMapping } from '@fsf/shared';
-import { api, ScrapedPersonData } from '../../services/api';
+import { api, LegacyScrapedPersonData } from '../../services/api';
 import { FavoriteButton } from '../favorites/FavoriteButton';
 
 interface CachedLineage {
@@ -71,7 +71,7 @@ export function PersonDetail() {
   const [spouseData, setSpouseData] = useState<Record<string, PersonWithId>>({});
   const [database, setDatabase] = useState<DatabaseInfo | null>(null);
   const [lineage, setLineage] = useState<PathResult | null>(null);
-  const [scrapedData, setScrapedData] = useState<ScrapedPersonData | null>(null);
+  const [scrapedData, setScrapedData] = useState<LegacyScrapedPersonData | null>(null);
   const [augmentation, setAugmentation] = useState<PersonAugmentation | null>(null);
   const [hasPhoto, setHasPhoto] = useState(false);
   const [hasWikiPhoto, setHasWikiPhoto] = useState(false);
@@ -282,7 +282,7 @@ export function PersonDetail() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-neutral-400">Loading person...</div>;
+    return <div className="text-center py-8 text-app-text-muted">Loading person...</div>;
   }
 
   if (error || !person) {
@@ -320,13 +320,13 @@ export function PersonDetail() {
             />
           ) : (
             <div className="w-32 h-32 rounded-lg bg-app-card border border-app-border flex items-center justify-center">
-              <User size={48} className="text-neutral-600" />
+              <User size={48} className="text-app-text-subtle" />
             </div>
           )}
           <button
             onClick={handleScrape}
             disabled={scrapeLoading}
-            className="mt-2 w-full px-3 py-1.5 bg-app-card border border-app-border rounded text-sm text-neutral-300 hover:bg-app-border transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
+            className="mt-2 w-full px-3 py-1.5 bg-app-card border border-app-border rounded text-sm text-app-text-secondary hover:bg-app-border transition-colors disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {scrapeLoading ? (
               <>
@@ -377,7 +377,7 @@ export function PersonDetail() {
             {/* Gender badge */}
             {person.gender && person.gender !== 'unknown' && (
               <span className={`px-2 py-0.5 rounded text-xs ${
-                person.gender === 'male' ? 'bg-blue-500/20 text-blue-400' : 'bg-pink-500/20 text-pink-400'
+                person.gender === 'male' ? 'bg-app-male-subtle text-app-male' : 'bg-app-female-subtle text-app-female'
               }`}>
                 {person.gender === 'male' ? 'Male' : 'Female'}
               </span>
@@ -386,26 +386,26 @@ export function PersonDetail() {
             <FavoriteButton personId={personId!} personName={person.name} />
             <Link
               to={`/tree/${dbId}/${personId}`}
-              className="text-neutral-400 hover:text-app-accent flex items-center gap-1 text-sm"
+              className="text-app-text-muted hover:text-app-accent flex items-center gap-1 text-sm"
             >
               <GitBranch size={14} />
               View in tree
             </Link>
           </div>
-          <h1 className="text-3xl font-bold text-white">{person.name}</h1>
+          <h1 className="text-3xl font-bold text-app-text">{person.name}</h1>
 
           {/* Alternate names */}
           {person.alternateNames && person.alternateNames.length > 0 && (
-            <p className="text-sm text-neutral-500 mt-1">
+            <p className="text-sm text-app-text-subtle mt-1">
               Also known as: {person.alternateNames.join(', ')}
             </p>
           )}
 
-          <p className="text-xl text-neutral-400 mt-1">{person.lifespan}</p>
+          <p className="text-xl text-app-text-muted mt-1">{person.lifespan}</p>
 
           {/* Scraped data notice */}
           {scrapedData && (
-            <p className="text-xs text-neutral-500 mt-2">
+            <p className="text-xs text-app-text-subtle mt-2">
               Last scraped: {new Date(scrapedData.scrapedAt).toLocaleDateString()}
             </p>
           )}
@@ -421,15 +421,15 @@ export function PersonDetail() {
             {/* Birth */}
             {(person.birth?.date || person.birth?.place) && (
               <div className="bg-app-card rounded-lg border border-app-border p-4">
-                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-app-text-secondary mb-2 flex items-center gap-2">
                   <Calendar size={16} className="text-green-400" />
                   Birth
                 </h3>
                 {person.birth.date && (
-                  <p className="text-white">{person.birth.date}</p>
+                  <p className="text-app-text">{person.birth.date}</p>
                 )}
                 {person.birth.place && (
-                  <p className="text-neutral-400 text-sm flex items-center gap-1">
+                  <p className="text-app-text-muted text-sm flex items-center gap-1">
                     <MapPin size={12} />
                     {person.birth.place}
                   </p>
@@ -440,15 +440,15 @@ export function PersonDetail() {
             {/* Death */}
             {(person.death?.date || person.death?.place) && (
               <div className="bg-app-card rounded-lg border border-app-border p-4">
-                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
+                <h3 className="text-sm font-semibold text-app-text-secondary mb-2 flex items-center gap-2">
                   <Calendar size={16} className="text-red-400" />
                   Death
                 </h3>
                 {person.death.date && (
-                  <p className="text-white">{person.death.date}</p>
+                  <p className="text-app-text">{person.death.date}</p>
                 )}
                 {person.death.place && (
-                  <p className="text-neutral-400 text-sm flex items-center gap-1">
+                  <p className="text-app-text-muted text-sm flex items-center gap-1">
                     <MapPin size={12} />
                     {person.death.place}
                   </p>
@@ -459,15 +459,15 @@ export function PersonDetail() {
             {/* Burial */}
             {(person.burial?.date || person.burial?.place) && (
               <div className="bg-app-card rounded-lg border border-app-border p-4">
-                <h3 className="text-sm font-semibold text-neutral-300 mb-2 flex items-center gap-2">
-                  <MapPin size={16} className="text-neutral-400" />
+                <h3 className="text-sm font-semibold text-app-text-secondary mb-2 flex items-center gap-2">
+                  <MapPin size={16} className="text-app-text-muted" />
                   Burial
                 </h3>
                 {person.burial.date && (
-                  <p className="text-white">{person.burial.date}</p>
+                  <p className="text-app-text">{person.burial.date}</p>
                 )}
                 {person.burial.place && (
-                  <p className="text-neutral-400 text-sm">{person.burial.place}</p>
+                  <p className="text-app-text-muted text-sm">{person.burial.place}</p>
                 )}
               </div>
             )}
@@ -479,7 +479,7 @@ export function PersonDetail() {
               {person.occupations.map((occ, idx) => (
                 <div key={idx} className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border">
                   <Briefcase size={18} className="text-app-warning" />
-                  <span className="text-neutral-300">{occ}</span>
+                  <span className="text-app-text-secondary">{occ}</span>
                 </div>
               ))}
             </div>
@@ -490,21 +490,21 @@ export function PersonDetail() {
             <div className="flex flex-wrap gap-4">
               <div className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border">
                 <MapPin size={18} className="text-app-accent" />
-                <span className="text-neutral-300">{person.location}</span>
+                <span className="text-app-text-secondary">{person.location}</span>
               </div>
             </div>
           )}
           {!person.occupations?.length && person.occupation && (
             <div className="flex items-center gap-2 px-4 py-2 bg-app-card rounded-lg border border-app-border w-fit">
               <Briefcase size={18} className="text-app-warning" />
-              <span className="text-neutral-300">{person.occupation}</span>
+              <span className="text-app-text-secondary">{person.occupation}</span>
             </div>
           )}
 
           {/* Biography / Wikipedia Description */}
           {displayBio && (
             <div className="bg-app-card rounded-lg border border-app-border p-5">
-              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-app-text mb-3 flex items-center gap-2">
                 {wikiDescription ? (
                   <>
                     <BookOpen size={18} className="text-blue-400" />
@@ -514,7 +514,7 @@ export function PersonDetail() {
                   'Biography'
                 )}
               </h2>
-              <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">{displayBio}</p>
+              <p className="text-app-text-muted whitespace-pre-wrap leading-relaxed">{displayBio}</p>
               {wikiPlatform?.url && (
                 <a
                   href={wikiPlatform.url}
@@ -532,8 +532,8 @@ export function PersonDetail() {
           {/* Original FamilySearch bio if we have Wikipedia description */}
           {wikiDescription && person.bio && (
             <div className="bg-app-card rounded-lg border border-app-border p-5">
-              <h2 className="text-lg font-semibold text-white mb-3">FamilySearch Biography</h2>
-              <p className="text-neutral-400 whitespace-pre-wrap leading-relaxed">{person.bio}</p>
+              <h2 className="text-lg font-semibold text-app-text mb-3">FamilySearch Biography</h2>
+              <p className="text-app-text-muted whitespace-pre-wrap leading-relaxed">{person.bio}</p>
             </div>
           )}
 
@@ -541,7 +541,7 @@ export function PersonDetail() {
           {augmentation?.platforms && augmentation.platforms.length > 0 && (
             <div className="flex flex-wrap gap-2">
               {augmentation.platforms.map((platform, idx) => {
-                const config = platformConfig[platform.platform] || { label: platform.platform, color: 'bg-neutral-600/20 text-neutral-400' };
+                const config = platformConfig[platform.platform] || { label: platform.platform, color: 'bg-app-text-subtle/20 text-app-text-muted' };
                 return (
                   <a
                     key={idx}
@@ -565,7 +565,7 @@ export function PersonDetail() {
               href={`https://www.familysearch.org/tree/person/details/${personId}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="inline-flex items-center gap-2 px-4 py-2 bg-app-border text-neutral-300 rounded-lg hover:bg-neutral-700 transition-colors"
+              className="inline-flex items-center gap-2 px-4 py-2 bg-app-border text-app-text-secondary rounded-lg hover:bg-app-hover transition-colors"
             >
               <ExternalLink size={16} />
               View on FamilySearch
@@ -599,19 +599,19 @@ export function PersonDetail() {
           {/* Wikipedia URL input */}
           {showWikiInput && (
             <div className="bg-app-card rounded-lg border border-app-border p-4">
-              <h3 className="text-sm font-semibold text-neutral-300 mb-3">Link Wikipedia Article</h3>
+              <h3 className="text-sm font-semibold text-app-text-secondary mb-3">Link Wikipedia Article</h3>
               <div className="flex gap-2">
                 <input
                   type="url"
                   value={wikiUrl}
                   onChange={e => setWikiUrl(e.target.value)}
                   placeholder="https://en.wikipedia.org/wiki/..."
-                  className="flex-1 px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none"
+                  className="flex-1 px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none"
                 />
                 <button
                   onClick={handleLinkWikipedia}
                   disabled={wikiLoading || !wikiUrl.trim()}
-                  className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
+                  className="px-4 py-2 bg-blue-600 text-app-text rounded hover:bg-blue-500 transition-colors disabled:opacity-50 flex items-center gap-2"
                 >
                   {wikiLoading ? (
                     <>
@@ -624,12 +624,12 @@ export function PersonDetail() {
                 </button>
                 <button
                   onClick={() => { setShowWikiInput(false); setWikiUrl(''); }}
-                  className="px-4 py-2 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
+                  className="px-4 py-2 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors"
                 >
                   Cancel
                 </button>
               </div>
-              <p className="text-xs text-neutral-500 mt-2">
+              <p className="text-xs text-app-text-subtle mt-2">
                 Paste a Wikipedia URL to import photo and description for this person.
               </p>
             </div>
@@ -638,7 +638,7 @@ export function PersonDetail() {
           {/* Provider Mappings Section */}
           {providers && Object.keys(providers.providers).length > 0 && (
             <div className="bg-app-card rounded-lg border border-app-border p-5">
-              <h2 className="text-lg font-semibold text-white mb-3 flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-app-text mb-3 flex items-center gap-2">
                 <Database size={18} className="text-app-accent" />
                 Provider Links
               </h2>
@@ -655,10 +655,10 @@ export function PersonDetail() {
                         className="flex items-center justify-between px-3 py-2 bg-app-bg rounded"
                       >
                         <div className="flex items-center gap-3">
-                          <span className="text-sm text-neutral-300">
+                          <span className="text-sm text-app-text-secondary">
                             {provider?.name || mapping.providerId}
                           </span>
-                          <span className="text-xs px-2 py-0.5 bg-neutral-700 text-neutral-400 rounded">
+                          <span className="text-xs px-2 py-0.5 bg-app-bg-secondary text-app-text-muted rounded">
                             {mapping.platform}
                           </span>
                           {mapping.confidence && (
@@ -702,7 +702,7 @@ export function PersonDetail() {
               {!showProviderLinkInput && (
                 <button
                   onClick={() => setShowProviderLinkInput(true)}
-                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors text-sm"
+                  className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors text-sm"
                 >
                   <Link2 size={14} />
                   Link to Provider
@@ -713,11 +713,11 @@ export function PersonDetail() {
               {showProviderLinkInput && (
                 <div className="space-y-3 mt-3 pt-3 border-t border-app-border">
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">Provider</label>
+                    <label className="block text-xs font-medium text-app-text-muted mb-1">Provider</label>
                     <select
                       value={selectedProviderId}
                       onChange={e => setSelectedProviderId(e.target.value)}
-                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white text-sm focus:border-app-accent focus:outline-none"
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text text-sm focus:border-app-accent focus:outline-none"
                     >
                       <option value="">Select a provider...</option>
                       {Object.values(providers.providers)
@@ -728,30 +728,30 @@ export function PersonDetail() {
                     </select>
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">URL on Provider</label>
+                    <label className="block text-xs font-medium text-app-text-muted mb-1">URL on Provider</label>
                     <input
                       type="url"
                       value={providerUrl}
                       onChange={e => setProviderUrl(e.target.value)}
                       placeholder="https://..."
-                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 text-sm focus:border-app-accent focus:outline-none"
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder text-sm focus:border-app-accent focus:outline-none"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs font-medium text-neutral-400 mb-1">External ID (optional)</label>
+                    <label className="block text-xs font-medium text-app-text-muted mb-1">External ID (optional)</label>
                     <input
                       type="text"
                       value={providerExternalId}
                       onChange={e => setProviderExternalId(e.target.value)}
                       placeholder="Person ID on provider platform"
-                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 text-sm focus:border-app-accent focus:outline-none"
+                      className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder text-sm focus:border-app-accent focus:outline-none"
                     />
                   </div>
                   <div className="flex gap-2">
                     <button
                       onClick={handleLinkProvider}
                       disabled={providerLinkLoading || !selectedProviderId || !providerUrl.trim()}
-                      className="px-3 py-1.5 bg-app-accent text-white rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
+                      className="px-3 py-1.5 bg-app-accent text-app-text rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 text-sm flex items-center gap-2"
                     >
                       {providerLinkLoading ? (
                         <>
@@ -769,7 +769,7 @@ export function PersonDetail() {
                         setProviderUrl('');
                         setProviderExternalId('');
                       }}
-                      className="px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors text-sm"
+                      className="px-3 py-1.5 bg-app-border text-app-text-secondary rounded hover:bg-app-hover transition-colors text-sm"
                     >
                       Cancel
                     </button>
@@ -784,7 +784,7 @@ export function PersonDetail() {
         <div className="space-y-4">
           {/* Parents */}
           <div className="bg-app-card rounded-lg border border-app-border p-4">
-            <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-300 mb-3">
+            <h2 className="flex items-center gap-2 text-sm font-semibold text-app-text-secondary mb-3">
               <Users size={16} className="text-app-accent" />
               Parents
             </h2>
@@ -799,13 +799,13 @@ export function PersonDetail() {
                       className="flex items-center justify-between px-3 py-2 bg-app-bg rounded hover:bg-app-border transition-colors text-sm group"
                     >
                       <div className="flex flex-col">
-                        <span className="text-white">{parent?.name || parentId}</span>
-                        {parent && <span className="text-neutral-500 text-xs">{parent.lifespan}</span>}
+                        <span className="text-app-text">{parent?.name || parentId}</span>
+                        {parent && <span className="text-app-text-subtle text-xs">{parent.lifespan}</span>}
                       </div>
                       <span className={`text-xs px-2 py-0.5 rounded flex-shrink-0 ${
                         idx === 0
-                          ? 'bg-blue-500/20 text-blue-400'
-                          : 'bg-pink-500/20 text-pink-400'
+                          ? 'bg-app-male-subtle text-app-male'
+                          : 'bg-app-female-subtle text-app-female'
                       }`}>
                         {idx === 0 ? 'Father' : 'Mother'}
                       </span>
@@ -814,14 +814,14 @@ export function PersonDetail() {
                 })}
               </div>
             ) : (
-              <p className="text-neutral-500 text-sm">No parents in database</p>
+              <p className="text-app-text-subtle text-sm">No parents in database</p>
             )}
           </div>
 
           {/* Spouses */}
           {person.spouses && person.spouses.length > 0 && (
             <div className="bg-app-card rounded-lg border border-app-border p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-300 mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-app-text-secondary mb-3">
                 <Heart size={16} className="text-pink-400" />
                 Spouse{person.spouses.length > 1 ? 's' : ''}
               </h2>
@@ -835,8 +835,8 @@ export function PersonDetail() {
                       className="flex items-center justify-between px-3 py-2 bg-app-bg rounded hover:bg-app-border transition-colors text-sm group"
                     >
                       <div className="flex flex-col">
-                        <span className="text-white">{spouse?.name || spouseId}</span>
-                        {spouse && <span className="text-neutral-500 text-xs">{spouse.lifespan}</span>}
+                        <span className="text-app-text">{spouse?.name || spouseId}</span>
+                        {spouse && <span className="text-app-text-subtle text-xs">{spouse.lifespan}</span>}
                       </div>
                     </Link>
                   );
@@ -848,7 +848,7 @@ export function PersonDetail() {
           {/* Children */}
           {person.children.length > 0 && (
             <div className="bg-app-card rounded-lg border border-app-border p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-300 mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-app-text-secondary mb-3">
                 <Users size={16} className="text-app-success" />
                 Children ({person.children.length})
               </h2>
@@ -869,7 +869,7 @@ export function PersonDetail() {
           {/* Lineage path */}
           {lineage && lineage.path.length > 1 && (
             <div className="bg-app-card rounded-lg border border-app-border p-4">
-              <h2 className="flex items-center gap-2 text-sm font-semibold text-neutral-300 mb-3">
+              <h2 className="flex items-center gap-2 text-sm font-semibold text-app-text-secondary mb-3">
                 <GitBranch size={16} className="text-app-warning" />
                 Lineage Path ({lineage.path.length} people)
               </h2>
@@ -881,10 +881,10 @@ export function PersonDetail() {
                     className={`block px-3 py-1.5 rounded text-sm transition-colors ${
                       ancestor.id === personId
                         ? 'bg-app-accent/20 text-app-accent font-medium'
-                        : 'text-neutral-400 hover:bg-app-border hover:text-white'
+                        : 'text-app-text-muted hover:bg-app-border hover:text-app-text'
                     }`}
                   >
-                    <span className="text-neutral-500 mr-2">{idx}.</span>
+                    <span className="text-app-text-subtle mr-2">{idx}.</span>
                     {ancestor.name}
                   </Link>
                 ))}

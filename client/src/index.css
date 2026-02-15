@@ -4,24 +4,102 @@
 
 /* Light theme (default) */
 :root {
+  /* Core colors */
   --color-app-bg: #f5f5f5;
+  --color-app-bg-secondary: #e5e5e5;
   --color-app-card: #ffffff;
-  --color-app-border: #e5e5e5;
+  --color-app-border: #d4d4d4;
+  --color-app-hover: #e5e5e5;
+
+  /* Text colors */
   --color-app-text: #171717;
+  --color-app-text-secondary: #404040;
   --color-app-text-muted: #737373;
+  --color-app-text-subtle: #a3a3a3;
+
+  /* Input colors */
+  --color-app-input-bg: #ffffff;
+  --color-app-input-border: #d4d4d4;
+  --color-app-placeholder: #9ca3af;
+
+  /* Accent colors */
+  --color-app-accent: #3b82f6;
+  --color-app-accent-hover: #2563eb;
+  --color-app-accent-subtle: rgba(59, 130, 246, 0.1);
+
+  /* Status colors */
+  --color-app-success: #22c55e;
+  --color-app-success-subtle: rgba(34, 197, 94, 0.1);
+  --color-app-warning: #f59e0b;
+  --color-app-warning-subtle: rgba(245, 158, 11, 0.1);
+  --color-app-error: #ef4444;
+  --color-app-error-subtle: rgba(239, 68, 68, 0.1);
+
+  /* Gender colors */
+  --color-male: #3b82f6;
+  --color-male-subtle: rgba(59, 130, 246, 0.2);
+  --color-female: #ec4899;
+  --color-female-subtle: rgba(236, 72, 153, 0.2);
+
+  /* Overlay */
+  --color-app-overlay: rgba(0, 0, 0, 0.5);
+
+  /* Tree connector lines */
+  --color-tree-bg: #f5f5f5;
+  --color-tree-line: #6b7280;
 }
 
 /* Dark theme */
 .dark {
+  /* Core colors */
   --color-app-bg: #0f0f0f;
+  --color-app-bg-secondary: #171717;
   --color-app-card: #1a1a1a;
   --color-app-border: #2a2a2a;
+  --color-app-hover: #262626;
+
+  /* Text colors */
   --color-app-text: #ffffff;
+  --color-app-text-secondary: #d4d4d4;
   --color-app-text-muted: #a3a3a3;
+  --color-app-text-subtle: #737373;
+
+  /* Input colors */
+  --color-app-input-bg: #171717;
+  --color-app-input-border: #2a2a2a;
+  --color-app-placeholder: #6b7280;
+
+  /* Accent colors */
+  --color-app-accent: #3b82f6;
+  --color-app-accent-hover: #60a5fa;
+  --color-app-accent-subtle: rgba(59, 130, 246, 0.2);
+
+  /* Status colors */
+  --color-app-success: #22c55e;
+  --color-app-success-subtle: rgba(34, 197, 94, 0.2);
+  --color-app-warning: #f59e0b;
+  --color-app-warning-subtle: rgba(245, 158, 11, 0.2);
+  --color-app-error: #ef4444;
+  --color-app-error-subtle: rgba(239, 68, 68, 0.2);
+
+  /* Gender colors */
+  --color-male: #60a5fa;
+  --color-male-subtle: rgba(96, 165, 250, 0.2);
+  --color-female: #f472b6;
+  --color-female-subtle: rgba(244, 114, 182, 0.2);
+
+  /* Overlay */
+  --color-app-overlay: rgba(0, 0, 0, 0.7);
+
+  /* Tree connector lines */
+  --color-tree-bg: #262626;
+  --color-tree-line: #525252;
 }
 
 body {
-  @apply bg-app-bg text-app-text transition-colors duration-200;
+  background-color: var(--color-app-bg);
+  color: var(--color-app-text);
+  transition: background-color 0.2s, color 0.2s;
 }
 
 /* Scrollbar */
@@ -31,27 +109,87 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  @apply bg-app-bg;
+  background-color: var(--color-app-bg);
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-app-border rounded;
+  background-color: var(--color-app-border);
+  border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-neutral-400 dark:bg-neutral-600;
+  background-color: var(--color-app-text-muted);
 }
 
 /* Focus styles */
 *:focus-visible {
-  @apply outline-none ring-2 ring-app-accent ring-offset-2 ring-offset-app-bg;
+  @apply outline-none ring-2 ring-blue-500 ring-offset-2;
+  --tw-ring-offset-color: var(--color-app-bg);
 }
 
 /* Form elements */
 input, select, textarea {
-  @apply bg-app-card border-app-border text-app-text placeholder-app-text-muted;
+  background-color: var(--color-app-input-bg);
+  border-color: var(--color-app-input-border);
+  color: var(--color-app-text);
+}
+
+input::placeholder, select::placeholder, textarea::placeholder {
+  color: var(--color-app-placeholder);
 }
 
 input:focus, select:focus, textarea:focus {
-  @apply border-app-accent;
+  border-color: var(--color-app-accent);
+}
+
+/* Custom theme utilities - Override Tailwind's hardcoded values with CSS variables */
+/* These MUST come after @tailwind utilities to override properly */
+.text-app-text {
+  color: var(--color-app-text) !important;
+}
+.text-app-text-secondary {
+  color: var(--color-app-text-secondary) !important;
+}
+.text-app-text-muted {
+  color: var(--color-app-text-muted) !important;
+}
+.text-app-text-subtle {
+  color: var(--color-app-text-subtle) !important;
+}
+
+.bg-app-bg {
+  background-color: var(--color-app-bg) !important;
+}
+.bg-app-bg-secondary {
+  background-color: var(--color-app-bg-secondary) !important;
+}
+.bg-app-card {
+  background-color: var(--color-app-card) !important;
+}
+.bg-app-border {
+  background-color: var(--color-app-border) !important;
+}
+.bg-app-hover {
+  background-color: var(--color-app-hover) !important;
+}
+.bg-app-input-bg {
+  background-color: var(--color-app-input-bg) !important;
+}
+
+.border-app-border {
+  border-color: var(--color-app-border) !important;
+}
+.border-app-input-border {
+  border-color: var(--color-app-input-border) !important;
+}
+
+/* Tree-specific colors */
+.bg-tree-bg {
+  background-color: var(--color-tree-bg) !important;
+}
+.bg-tree-line {
+  background-color: var(--color-tree-line) !important;
+}
+.border-tree-line {
+  border-color: var(--color-tree-line) !important;
 }

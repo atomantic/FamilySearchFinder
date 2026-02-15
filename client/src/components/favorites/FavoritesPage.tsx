@@ -93,8 +93,8 @@ export function FavoritesPage() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
           <Star size={28} className="text-yellow-400 fill-current" />
-          <h1 className="text-2xl font-bold text-white">Favorites</h1>
-          <span className="px-2 py-0.5 bg-app-border text-neutral-400 rounded text-sm">
+          <h1 className="text-2xl font-bold text-app-text">Favorites</h1>
+          <span className="px-2 py-0.5 bg-app-border text-app-text-muted rounded text-sm">
             {total} total
           </span>
         </div>
@@ -105,23 +105,23 @@ export function FavoritesPage() {
         <div className="flex flex-wrap gap-4">
           {/* Search */}
           <div className="relative flex-1 min-w-[200px]">
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-subtle" />
             <input
               type="text"
               value={searchQuery}
               onChange={e => updateFilter('q', e.target.value)}
               placeholder="Search favorites..."
-              className="w-full pl-9 pr-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none"
+              className="w-full pl-9 pr-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none"
             />
           </div>
 
           {/* Tag filter */}
           <div className="relative">
-            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500" />
+            <Filter size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-app-text-subtle" />
             <select
               value={selectedTag}
               onChange={e => updateFilter('tag', e.target.value)}
-              className="pl-9 pr-8 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none appearance-none cursor-pointer"
+              className="pl-9 pr-8 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none appearance-none cursor-pointer"
             >
               <option value="">All Tags</option>
               {allTags.map(tag => (
@@ -134,7 +134,7 @@ export function FavoritesPage() {
           <select
             value={selectedDb}
             onChange={e => updateFilter('db', e.target.value)}
-            className="px-3 py-2 bg-app-bg border border-app-border rounded text-white focus:border-app-accent focus:outline-none appearance-none cursor-pointer"
+            className="px-3 py-2 bg-app-bg border border-app-border rounded text-app-text focus:border-app-accent focus:outline-none appearance-none cursor-pointer"
           >
             <option value="">All Databases</option>
             {databasesWithFavorites.map(db => (
@@ -148,7 +148,7 @@ export function FavoritesPage() {
           {hasFilters && (
             <button
               onClick={clearFilters}
-              className="flex items-center gap-1 px-3 py-2 text-neutral-400 hover:text-white transition-colors"
+              className="flex items-center gap-1 px-3 py-2 text-app-text-muted hover:text-app-text transition-colors"
             >
               <X size={16} />
               Clear
@@ -160,7 +160,7 @@ export function FavoritesPage() {
       {/* Sparse Tree Links for databases with favorites */}
       {databasesWithFavorites.length > 0 && (
         <div className="bg-app-card border border-app-border rounded-lg p-4">
-          <h3 className="text-sm font-medium text-neutral-300 mb-3">View Sparse Tree</h3>
+          <h3 className="text-sm font-medium text-app-text-secondary mb-3">View Sparse Tree</h3>
           <div className="flex flex-wrap gap-2">
             {databasesWithFavorites.map(db => {
               const favCount = favorites.filter(f => f.databases.includes(db.id)).length;
@@ -171,7 +171,7 @@ export function FavoritesPage() {
                   className="inline-flex items-center gap-2 px-3 py-1.5 bg-app-bg border border-app-border rounded hover:border-app-accent transition-colors"
                 >
                   <Network size={16} className="text-app-accent" />
-                  <span className="text-white text-sm">{db.rootName || db.id}</span>
+                  <span className="text-app-text text-sm">{db.rootName || db.id}</span>
                   <span className="px-1.5 py-0.5 bg-yellow-400/20 text-yellow-400 rounded text-xs">
                     {favCount}
                   </span>
@@ -185,11 +185,11 @@ export function FavoritesPage() {
       {/* Results */}
       {filteredFavorites.length === 0 ? (
         <div className="text-center py-16">
-          <Star size={48} className="mx-auto text-neutral-600 mb-4" />
-          <h3 className="text-lg font-medium text-neutral-400 mb-2">
+          <Star size={48} className="mx-auto text-app-text-subtle mb-4" />
+          <h3 className="text-lg font-medium text-app-text-muted mb-2">
             {hasFilters ? 'No favorites match your filters' : 'No favorites yet'}
           </h3>
-          <p className="text-neutral-500">
+          <p className="text-app-text-subtle">
             {hasFilters
               ? 'Try adjusting your search or filters'
               : 'Mark people as favorites from their detail pages'
@@ -210,17 +210,17 @@ export function FavoritesPage() {
           <button
             onClick={() => setPage(p => Math.max(1, p - 1))}
             disabled={page === 1}
-            className="px-3 py-1 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 bg-app-border text-app-text-secondary rounded hover:bg-app-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Previous
           </button>
-          <span className="px-3 py-1 text-neutral-400">
+          <span className="px-3 py-1 text-app-text-muted">
             Page {page} of {totalPages}
           </span>
           <button
             onClick={() => setPage(p => Math.min(totalPages, p + 1))}
             disabled={page === totalPages}
-            className="px-3 py-1 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 py-1 bg-app-border text-app-text-secondary rounded hover:bg-app-hover disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Next
           </button>
@@ -258,7 +258,7 @@ function FavoriteCard({ favorite, databases }: FavoriteCardProps) {
             />
           ) : (
             <div className="w-16 h-16 rounded-lg bg-app-bg border border-app-border flex items-center justify-center">
-              <User size={24} className="text-neutral-600" />
+              <User size={24} className="text-app-text-subtle" />
             </div>
           )}
         </div>
@@ -267,14 +267,14 @@ function FavoriteCard({ favorite, databases }: FavoriteCardProps) {
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-1">
             <Star size={14} className="text-yellow-400 fill-current flex-shrink-0" />
-            <h3 className="text-white font-medium truncate group-hover:text-app-accent transition-colors">
+            <h3 className="text-app-text font-medium truncate group-hover:text-app-accent transition-colors">
               {name}
             </h3>
           </div>
-          <p className="text-sm text-neutral-400 mb-2">{lifespan}</p>
+          <p className="text-sm text-app-text-muted mb-2">{lifespan}</p>
 
           {/* Why interesting - truncated */}
-          <p className="text-xs text-neutral-500 line-clamp-2">
+          <p className="text-xs text-app-text-subtle line-clamp-2">
             {favData.whyInteresting}
           </p>
         </div>
@@ -302,7 +302,7 @@ function FavoriteCard({ favorite, databases }: FavoriteCardProps) {
             return (
               <span
                 key={dbId}
-                className="px-2 py-0.5 bg-app-border text-neutral-500 rounded text-xs"
+                className="px-2 py-0.5 bg-app-border text-app-text-subtle rounded text-xs"
               >
                 {db?.rootName || dbId}
               </span>

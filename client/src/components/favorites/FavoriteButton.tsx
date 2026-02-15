@@ -93,7 +93,7 @@ export function FavoriteButton({
     flex items-center gap-1.5 transition-colors
     ${isFavorite
       ? 'text-yellow-400 hover:text-yellow-300'
-      : 'text-neutral-400 hover:text-yellow-400'
+      : 'text-app-text-muted hover:text-yellow-400'
     }
     ${loading || saving ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
   `;

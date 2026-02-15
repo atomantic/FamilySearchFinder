@@ -42,7 +42,7 @@ export function SearchPage() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Search</h1>
+        <h1 className="text-2xl font-bold text-app-text">Search</h1>
         <Link to={`/tree/${dbId}`} className="text-app-accent hover:underline">
           Back to tree
         </Link>
@@ -77,7 +77,7 @@ export function SearchPage() {
           <button
             onClick={() => handleSearch()}
             disabled={loading}
-            className="px-4 py-2 bg-app-accent text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-app-accent text-app-text rounded-md hover:bg-app-accent-hover disabled:opacity-50"
           >
             {loading ? 'Searching...' : 'Search'}
           </button>
@@ -86,7 +86,7 @@ export function SearchPage() {
 
       {searched && (
         <div>
-          <p className="text-neutral-400 mb-4">
+          <p className="text-app-text-muted mb-4">
             Found {total.toLocaleString()} results
           </p>
 
@@ -95,10 +95,10 @@ export function SearchPage() {
               <table className="w-full">
                 <thead className="bg-app-bg">
                   <tr>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-neutral-300">Name</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-neutral-300">Lifespan</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-neutral-300">Location</th>
-                    <th className="px-4 py-3 text-left text-sm font-medium text-neutral-300">Occupation</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-app-text-secondary">Name</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-app-text-secondary">Lifespan</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-app-text-secondary">Location</th>
+                    <th className="px-4 py-3 text-left text-sm font-medium text-app-text-secondary">Occupation</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-app-border">
@@ -112,16 +112,16 @@ export function SearchPage() {
                           {person.name}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-neutral-400">{person.lifespan}</td>
-                      <td className="px-4 py-3 text-neutral-400">{person.location || '-'}</td>
-                      <td className="px-4 py-3 text-neutral-400">{person.occupation || '-'}</td>
+                      <td className="px-4 py-3 text-app-text-muted">{person.lifespan}</td>
+                      <td className="px-4 py-3 text-app-text-muted">{person.location || '-'}</td>
+                      <td className="px-4 py-3 text-app-text-muted">{person.occupation || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
               </table>
             </div>
           ) : (
-            <p className="text-neutral-500 text-center py-8">No results found</p>
+            <p className="text-app-text-subtle text-center py-8">No results found</p>
           )}
 
           {total > 50 && (
@@ -129,17 +129,17 @@ export function SearchPage() {
               <button
                 onClick={() => handleSearch(page - 1)}
                 disabled={page === 1 || loading}
-                className="px-3 py-1 border border-app-border rounded text-neutral-300 disabled:opacity-50 hover:bg-app-border"
+                className="px-3 py-1 border border-app-border rounded text-app-text-secondary disabled:opacity-50 hover:bg-app-border"
               >
                 Previous
               </button>
-              <span className="px-3 py-1 text-neutral-400">
+              <span className="px-3 py-1 text-app-text-muted">
                 Page {page} of {Math.ceil(total / 50)}
               </span>
               <button
                 onClick={() => handleSearch(page + 1)}
                 disabled={page >= Math.ceil(total / 50) || loading}
-                className="px-3 py-1 border border-app-border rounded text-neutral-300 disabled:opacity-50 hover:bg-app-border"
+                className="px-3 py-1 border border-app-border rounded text-app-text-secondary disabled:opacity-50 hover:bg-app-border"
               >
                 Next
               </button>

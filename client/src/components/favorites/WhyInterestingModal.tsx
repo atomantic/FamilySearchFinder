@@ -94,12 +94,12 @@ export function WhyInterestingModal({
       <div className="relative w-full max-w-md bg-app-card border border-app-border rounded-lg shadow-xl">
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b border-app-border">
-          <h2 className="text-lg font-semibold text-white">
+          <h2 className="text-lg font-semibold text-app-text">
             {initialWhyInteresting ? 'Edit Favorite' : 'Add to Favorites'}
           </h2>
           <button
             onClick={onClose}
-            className="p-1 text-neutral-400 hover:text-white transition-colors"
+            className="p-1 text-app-text-muted hover:text-app-text transition-colors"
           >
             <X size={20} />
           </button>
@@ -109,14 +109,14 @@ export function WhyInterestingModal({
         <form onSubmit={handleSubmit}>
           <div className="px-6 py-4 space-y-4">
             {personName && (
-              <p className="text-sm text-neutral-400">
-                Marking <span className="text-white font-medium">{personName}</span> as a favorite
+              <p className="text-sm text-app-text-muted">
+                Marking <span className="text-app-text font-medium">{personName}</span> as a favorite
               </p>
             )}
 
             {/* Why Interesting */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-app-text-secondary mb-2">
                 Why is this person interesting?
               </label>
               <textarea
@@ -124,14 +124,14 @@ export function WhyInterestingModal({
                 onChange={e => setWhyInteresting(e.target.value)}
                 placeholder="e.g., Direct ancestor who immigrated from Ireland..."
                 rows={4}
-                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none resize-none"
+                className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none resize-none"
                 autoFocus
               />
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-sm font-medium text-neutral-300 mb-2">
+              <label className="block text-sm font-medium text-app-text-secondary mb-2">
                 Tags (optional)
               </label>
 
@@ -147,7 +147,7 @@ export function WhyInterestingModal({
                       <button
                         type="button"
                         onClick={() => handleTagRemove(tag)}
-                        className="hover:text-white"
+                        className="hover:text-app-text"
                       >
                         <X size={14} />
                       </button>
@@ -164,7 +164,7 @@ export function WhyInterestingModal({
                   onChange={e => setTagInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   placeholder="Type a tag and press Enter"
-                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-white placeholder-neutral-500 focus:border-app-accent focus:outline-none"
+                  className="w-full px-3 py-2 bg-app-bg border border-app-border rounded text-app-text placeholder-app-placeholder focus:border-app-accent focus:outline-none"
                 />
 
                 {/* Suggestions dropdown */}
@@ -175,7 +175,7 @@ export function WhyInterestingModal({
                         key={suggestion}
                         type="button"
                         onClick={() => handleTagAdd(suggestion)}
-                        className="w-full px-3 py-2 text-left text-sm text-neutral-300 hover:bg-app-border hover:text-white"
+                        className="w-full px-3 py-2 text-left text-sm text-app-text-secondary hover:bg-app-border hover:text-app-text"
                       >
                         {suggestion}
                       </button>
@@ -187,14 +187,14 @@ export function WhyInterestingModal({
               {/* Preset tag suggestions */}
               {availablePresets.length > 0 && (
                 <div className="mt-2">
-                  <p className="text-xs text-neutral-500 mb-1">Suggested:</p>
+                  <p className="text-xs text-app-text-subtle mb-1">Suggested:</p>
                   <div className="flex flex-wrap gap-1">
                     {availablePresets.slice(0, 6).map(preset => (
                       <button
                         key={preset}
                         type="button"
                         onClick={() => handleTagAdd(preset)}
-                        className="px-2 py-0.5 bg-app-border text-neutral-400 rounded text-xs hover:bg-neutral-700 hover:text-white transition-colors"
+                        className="px-2 py-0.5 bg-app-border text-app-text-muted rounded text-xs hover:bg-app-hover hover:text-app-text transition-colors"
                       >
                         + {preset}
                       </button>
@@ -210,14 +210,14 @@ export function WhyInterestingModal({
             <button
               type="button"
               onClick={onClose}
-              className="px-4 py-2 text-neutral-300 hover:text-white transition-colors"
+              className="px-4 py-2 text-app-text-secondary hover:text-app-text transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={isLoading || !whyInteresting.trim()}
-              className="px-4 py-2 bg-app-accent text-white rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 flex items-center gap-2"
+              className="px-4 py-2 bg-app-accent text-app-text rounded hover:bg-app-accent/80 transition-colors disabled:opacity-50 flex items-center gap-2"
             >
               {isLoading ? (
                 <>

@@ -35,7 +35,7 @@ export function PathFinder() {
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-white">Find Path</h1>
+        <h1 className="text-2xl font-bold text-app-text">Find Path</h1>
         <Link to={`/tree/${dbId}`} className="text-app-accent hover:underline">
           Back to tree
         </Link>
@@ -69,7 +69,7 @@ export function PathFinder() {
           <button
             onClick={handleFindPath}
             disabled={loading || !source || !target}
-            className="px-4 py-2 bg-app-accent text-white rounded-md hover:bg-blue-700 disabled:opacity-50"
+            className="px-4 py-2 bg-app-accent text-app-text rounded-md hover:bg-app-accent-hover disabled:opacity-50"
           >
             {loading ? 'Finding...' : 'Find Path'}
           </button>
@@ -84,7 +84,7 @@ export function PathFinder() {
 
       {result && (
         <div className="bg-app-card rounded-lg border border-app-border p-4">
-          <h2 className="text-lg font-semibold mb-4 text-white">
+          <h2 className="text-lg font-semibold mb-4 text-app-text">
             Path Found: {result.length} generations ({result.method} path)
           </h2>
 
@@ -104,8 +104,8 @@ export function PathFinder() {
                   >
                     {person.name}
                   </Link>
-                  <span className="text-neutral-500 ml-2">({person.id})</span>
-                  <p className="text-sm text-neutral-400">
+                  <span className="text-app-text-subtle ml-2">({person.id})</span>
+                  <p className="text-sm text-app-text-muted">
                     {person.lifespan}
                     {person.location && ` • ${person.location}`}
                   </p>

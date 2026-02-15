@@ -26,25 +26,25 @@ function DeleteConfirmModal({ database, onConfirm, onCancel, isDeleting }: Delet
   if (!database) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+    <div className="fixed inset-0 bg-app-overlay flex items-center justify-center z-50">
       <div className="bg-app-card border border-app-border rounded-lg p-6 max-w-md w-full mx-4">
         <h2 className="text-xl font-bold text-app-text mb-4">Delete Database?</h2>
-        <p className="text-neutral-400 mb-2">
+        <p className="text-app-text-muted mb-2">
           Are you sure you want to delete the database for:
         </p>
         <p className="text-app-text font-semibold mb-1">
           {database.rootName || database.rootId}
         </p>
-        <p className="text-neutral-500 text-sm mb-6">
+        <p className="text-app-text-muted text-sm mb-6">
           {database.personCount.toLocaleString()} people will be removed from the index.
           <br />
-          <span className="text-neutral-600">(Raw person files in data/person/ will not be affected)</span>
+          <span className="opacity-70">(Raw person files in data/person/ will not be affected)</span>
         </p>
         <div className="flex gap-3 justify-end">
           <button
             onClick={onCancel}
             disabled={isDeleting}
-            className="px-4 py-2 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors disabled:opacity-50"
+            className="px-4 py-2 bg-app-border text-app-text rounded hover:opacity-80 transition-colors disabled:opacity-50"
           >
             Cancel
           </button>
@@ -107,7 +107,7 @@ export function Dashboard() {
   };
 
   if (loading) {
-    return <div className="text-center py-8 text-neutral-400">Loading databases...</div>;
+    return <div className="text-center py-8 text-app-text-muted">Loading databases...</div>;
   }
 
   if (error) {
@@ -119,7 +119,7 @@ export function Dashboard() {
       <h1 className="text-2xl font-bold mb-6 text-app-text">Family Tree Databases</h1>
 
       {databases.length === 0 ? (
-        <div className="text-center py-8 text-neutral-400">
+        <div className="text-center py-8 text-app-text-muted">
           <p>No databases found.</p>
           <Link to="/indexer" className="text-app-accent hover:underline mt-2 inline-block">
             Start indexing a family tree
@@ -130,13 +130,13 @@ export function Dashboard() {
           {databases.map(db => (
             <div
               key={db.id}
-              className="bg-app-card rounded-lg border border-app-border p-4 hover:border-neutral-600 transition-colors"
+              className="bg-app-card rounded-lg border border-app-border p-4 hover:border-app-accent/50 transition-colors"
             >
               {/* Source provider badge */}
               {db.sourceProvider && (
                 <div className="mb-2">
                   {(() => {
-                    const colors = platformColors[db.sourceProvider] || { bg: 'bg-neutral-600/20', text: 'text-neutral-400' };
+                    const colors = platformColors[db.sourceProvider] || { bg: 'bg-app-text-muted/20', text: 'text-app-text-muted' };
                     return (
                       <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs ${colors.bg} ${colors.text}`}>
                         <Database size={10} />
@@ -153,11 +153,11 @@ export function Dashboard() {
                   <h2 className="font-semibold text-lg text-app-text truncate">
                     {db.rootName || 'Unknown Person'}
                   </h2>
-                  <p className="text-xs text-neutral-500 font-mono">{db.rootId}</p>
+                  <p className="text-xs text-app-text-muted font-mono">{db.rootId}</p>
                 </div>
                 <button
                   onClick={() => setDeleteTarget(db)}
-                  className="p-1.5 text-neutral-500 hover:text-red-400 hover:bg-red-400/10 rounded transition-colors flex-shrink-0 ml-2"
+                  className="p-1.5 text-app-text-muted hover:text-red-400 hover:bg-red-400/10 rounded transition-colors flex-shrink-0 ml-2"
                   title="Delete database"
                 >
                   <Trash2 size={16} />
@@ -165,7 +165,7 @@ export function Dashboard() {
               </div>
 
               {/* Stats */}
-              <div className="flex items-center gap-4 text-sm text-neutral-400 mb-4">
+              <div className="flex items-center gap-4 text-sm text-app-text-muted mb-4">
                 <span className="flex items-center gap-1">
                   <Users size={14} />
                   {db.personCount.toLocaleString()} people
@@ -189,21 +189,21 @@ export function Dashboard() {
                 </Link>
                 <Link
                   to={`/search/${db.id}`}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-app-text rounded hover:opacity-80 transition-colors"
                 >
                   <Search size={14} />
                   Search
                 </Link>
                 <Link
                   to={`/path/${db.id}`}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-app-text rounded hover:opacity-80 transition-colors"
                 >
                   <Route size={14} />
                   Path
                 </Link>
                 <Link
                   to={`/person/${db.id}/${db.rootId}`}
-                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-neutral-300 rounded hover:bg-neutral-700 transition-colors"
+                  className="flex items-center gap-1 px-3 py-1.5 bg-app-border text-app-text rounded hover:opacity-80 transition-colors"
                 >
                   <Users size={14} />
                   Root

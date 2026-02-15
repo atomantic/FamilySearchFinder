@@ -1,5 +1,5 @@
 import { Link, useLocation, useParams } from 'react-router-dom';
-import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database, Star, Network, Sun, Moon } from 'lucide-react';
+import { Home, Download, Bot, GitBranch, Search, Route, ChevronLeft, ChevronRight, X, Menu, Database, Star, Network, Sun, Moon, Monitor } from 'lucide-react';
 import { useSidebar } from '../../context/SidebarContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -15,6 +15,7 @@ const primaryNavItems: NavItem[] = [
   { path: '/indexer', label: 'Indexer', icon: <Download size={20} /> },
   { path: '/providers/genealogy', label: 'Genealogy Providers', icon: <Database size={20} /> },
   { path: '/providers', label: 'AI Providers', icon: <Bot size={20} /> },
+  { path: '/settings/browser', label: 'Browser Settings', icon: <Monitor size={20} /> },
 ];
 
 export function Sidebar() {
@@ -44,7 +45,7 @@ export function Sidebar() {
     flex items-center gap-3 px-3 py-2 rounded-lg transition-colors
     ${isActive(path)
       ? 'bg-app-accent text-app-text'
-      : 'text-neutral-400 hover:bg-app-border hover:text-app-text'
+      : 'text-app-text-muted hover:bg-app-hover hover:text-app-text'
     }
     ${isCollapsed ? 'justify-center' : ''}
   `;
@@ -63,7 +64,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {isMobileOpen && (
         <div
-          className="fixed inset-0 bg-black/50 z-40 md:hidden"
+          className="fixed inset-0 bg-app-overlay z-40 md:hidden"
           onClick={closeMobile}
         />
       )}
@@ -87,7 +88,7 @@ export function Sidebar() {
           )}
           <button
             onClick={toggleCollapsed}
-            className="p-1.5 rounded-lg text-neutral-400 hover:bg-app-border hover:text-app-text hidden md:block"
+            className="p-1.5 rounded-lg text-app-text-muted hover:bg-app-hover hover:text-app-text hidden md:block"
             aria-label={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
           >
             {isCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -114,7 +115,7 @@ export function Sidebar() {
             <>
               <div className={`pt-4 pb-2 ${isCollapsed ? 'border-t border-app-border mt-4' : ''}`}>
                 {!isCollapsed && (
-                  <span className="px-3 text-xs font-semibold text-neutral-500 uppercase tracking-wider">
+                  <span className="px-3 text-xs font-semibold text-app-text-muted uppercase tracking-wider">
                     Database
                   </span>
                 )}
@@ -141,13 +142,13 @@ export function Sidebar() {
             onClick={toggleTheme}
             className={`
               flex items-center gap-3 px-3 py-2 rounded-lg transition-colors w-full
-              text-app-text-muted hover:bg-app-border hover:text-app-text
+              text-app-text-muted hover:bg-app-hover hover:text-app-text
               ${isCollapsed ? 'justify-center' : ''}
             `}
-            title={isCollapsed ? (theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode') : undefined}
+            title={isCollapsed ? (theme === 'dark' ? 'Dark Mode (click for light)' : 'Light Mode (click for dark)') : undefined}
           >
-            {theme === 'dark' ? <Sun size={20} /> : <Moon size={20} />}
-            {!isCollapsed && <span>{theme === 'dark' ? 'Light Mode' : 'Dark Mode'}</span>}
+            {theme === 'dark' ? <Moon size={20} /> : <Sun size={20} />}
+            {!isCollapsed && <span>{theme === 'dark' ? 'Dark Mode' : 'Light Mode'}</span>}
           </button>
         </div>
       </aside>
