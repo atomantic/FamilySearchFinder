@@ -2,6 +2,7 @@ import { databaseService } from './database.service.js';
 
 // Import config for known unknowns filter
 const loadConfig = async () => {
+  // @ts-expect-error - Legacy JS module without type declarations
   const config = await import('../../../config.js');
   return config.default || config.config;
 };
